@@ -1,0 +1,12 @@
+
+
+<ScreenB>:
+    name: "ScreenB"
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "This is Screen B"
+        Button:
+            text: "Go to Screen A"
+            on_release:
+                root.root_widget.screen_manager.change_screen("ScreenA")
