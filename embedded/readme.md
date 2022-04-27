@@ -24,10 +24,10 @@ Everything inside the <code>./embedded/files/</code> folder will be copied to Pi
 
 To connect to the Raspberry Pi Pico, use this command:
 
-    rshell -p <insert your port here> --buffer-size 512
+    rshell -p <insert your port here>
 
     Example:
-    rshell -p COM5 --buffer-size 512
+    rshell -p COM5
 
 ### Copy your files to Pico
 
