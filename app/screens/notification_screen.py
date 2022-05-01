@@ -2,5 +2,5 @@
 from kivy.uix.screenmanager import Screen
 
 
-class LoginScreen(Screen):
+class NotificationScreen(Screen):
     pass
