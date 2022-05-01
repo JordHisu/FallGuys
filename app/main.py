@@ -1,3 +1,5 @@
+import os
+
 from kivy.app import App
 from kivy.lang.builder import Builder
 from kivy.uix.floatlayout import FloatLayout
@@ -14,8 +16,9 @@ class FallGuysApp(App):
         return root
 
     def load_kv_files(self):
-        layout_files = glob("**/*.kv", recursive=True)
-        layout_files.remove(self.MAIN_LAYOUT_FILE)
+        main_path = os.path.dirname(os.path.realpath(__file__))
+        layout_files = glob(f"{main_path}/**/*.kv", recursive=True)
+        layout_files.remove(f"{main_path}\\{self.MAIN_LAYOUT_FILE}")
         for file in layout_files:
             Builder.load_file(file)
         return Builder.load_file(self.MAIN_LAYOUT_FILE)
@@ -23,6 +26,7 @@ class FallGuysApp(App):
 
 class TopOfEverything(FloatLayout):
     INITIAL_WINDOW_SIZE = [300, 533]
+
     def __init__(self, **kwargs):
         super(TopOfEverything, self).__init__(**kwargs)
         Window.size = self.INITIAL_WINDOW_SIZE

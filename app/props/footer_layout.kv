@@ -1,0 +1,25 @@
+
+<Footer>:
+    height: 50
+    size_hint_y: None
+    BoxLayout:
+        ChangeScreenButton:
+            destination: "BodyStanceScreen"
+        ChangeScreenButton:
+            destination: "LiveLocationScreen"
+        ChangeScreenButton:
+            destination: "LoginScreen"
+        ChangeScreenButton:
+            destination: "NotificationScreen"
+        ChangeScreenButton:
+            destination: "SettingsScreen"
+        ChangeScreenButton:
+            destination: "SignupScreen"
+        ChangeScreenButton:
+            destination: "StepScreen"
+
+
+<ChangeScreenButton@Button>:
+    destination: None
+    on_release:
+        self.parent.parent.parent.screen_manager.change_screen(self.destination)
