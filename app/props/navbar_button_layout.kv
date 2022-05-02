@@ -1,0 +1,12 @@
+
+
+<NavbarButton>:
+    destination: None
+    selected: False
+    selected_image: None
+    unselected_image: None
+    source: self.unselected_image
+    on_release:
+        self.parent.parent.parent.screen_manager.change_screen(self.destination)
+        self.parent.parent.unselect_all_image_buttons()
+        self.select()

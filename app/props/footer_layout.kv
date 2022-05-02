@@ -1,25 +1,40 @@
+#: import NavbarButton props.navbar_button.NavbarButton
 
 <Footer>:
     height: 50
     size_hint_y: None
+    Image:
+        source: 'images/NavBar.png'
+        keep_ratio: False
+        allow_stretch: True
     BoxLayout:
-        ChangeScreenButton:
+        id: navbar
+        NavbarButton:
             destination: "BodyStanceScreen"
-        ChangeScreenButton:
+            selected_image: "images/NavBar-Health-On.png"
+            unselected_image: "images/NavBar-Health-Off.png"
+            on_parent: self.select()
+        NavbarButton:
             destination: "LiveLocationScreen"
-        ChangeScreenButton:
+            selected_image: "images/NavBar-Location-On.png"
+            unselected_image: "images/NavBar-Location-Off.png"
+        NavbarButton:
             destination: "LoginScreen"
-        ChangeScreenButton:
+            selected_image: "images/NavBar-Position-On.png"
+            unselected_image: "images/NavBar-Position-Off.png"
+        NavbarButton:
             destination: "NotificationScreen"
-        ChangeScreenButton:
+            selected_image: "images/NavBar-Settings-On.png"
+            unselected_image: "images/NavBar-Settings-Off.png"
+        NavbarButton:
             destination: "SettingsScreen"
-        ChangeScreenButton:
+            selected_image: "images/NavBar-Health-On.png"
+            unselected_image: "images/NavBar-Health-Off.png"
+        NavbarButton:
             destination: "SignupScreen"
-        ChangeScreenButton:
+            selected_image: "images/NavBar-Health-On.png"
+            unselected_image: "images/NavBar-Health-Off.png"
+        NavbarButton:
             destination: "StepScreen"
-
-
-<ChangeScreenButton@Button>:
-    destination: None
-    on_release:
-        self.parent.parent.parent.screen_manager.change_screen(self.destination)
+            selected_image: "images/NavBar-Health-On.png"
+            unselected_image: "images/NavBar-Health-Off.png"
