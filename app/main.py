@@ -18,7 +18,7 @@ class FallGuysApp(App):
     def load_kv_files(self):
         main_path = os.path.dirname(os.path.realpath(__file__))
         layout_files = glob(f"{main_path}/**/*.kv", recursive=True)
-        layout_files.remove(f"{main_path}\\{self.MAIN_LAYOUT_FILE}")
+        layout_files.remove(os.path.join(main_path, self.MAIN_LAYOUT_FILE))
         for file in layout_files:
             Builder.load_file(file)
         return Builder.load_file(self.MAIN_LAYOUT_FILE)
