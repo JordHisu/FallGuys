@@ -1,5 +1,6 @@
 import os
 
+import kivy.utils
 from kivy.app import App
 from kivy.lang.builder import Builder
 from kivy.uix.floatlayout import FloatLayout
@@ -29,13 +30,22 @@ class TopOfEverything(FloatLayout):
 
     def __init__(self, **kwargs):
         super(TopOfEverything, self).__init__(**kwargs)
-        Window.size = self.INITIAL_WINDOW_SIZE
+        self.decide_screen_size()
         self.screen_manager = None
 
     def on_children(self, obj, children):
         new_child = children[0]  # The first element from children is always the new child
         if isinstance(new_child, ScreenManager):
             self.screen_manager = new_child
+
+    def decide_screen_size(self):
+        platform = kivy.utils.platform
+        if platform == 'win':
+            Window.size = self.INITIAL_WINDOW_SIZE
+        elif platform == 'android':
+            Window.maximize()
+        else:
+            Window.size = self.INITIAL_WINDOW_SIZE
 
 
 class MyScreenManager(ScreenManager):
