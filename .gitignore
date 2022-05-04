@@ -2,3 +2,4 @@
 **/__pycache__/
 .buildozer
 build_log.txt
+embedded/main.py
