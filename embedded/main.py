@@ -1,13 +1,8 @@
-from files.tests.lora2.transmitter import send as lora_send
-from files.utils.blink_led import blink_led
-from _thread import start_new_thread
-from files.tests import threading
-from files.tests.lora2.transmitter import receive
+from files.tests.bluetooth import bluetooth
 
 
 def run():
-    while True:
-        receive()
+    bluetooth.run()
 
 
 if __name__ == "__main__":
