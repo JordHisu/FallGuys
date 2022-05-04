@@ -19,7 +19,7 @@ def run():
 
 
 def clean_message(message):
-    valid_letter_list = [letter for letter in message if letter not in (' ', '\t', '\n', '\r', '\v', '\f')]
+    valid_letter_list = [letter for letter in message if letter not in ('\t', '\n', '\r', '\v', '\f')]
     return "".join(valid_letter_list)
 
 
