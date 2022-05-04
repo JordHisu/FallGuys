@@ -6,4 +6,4 @@
 @rshell cp embedded/main.py /pyboard/main.py
 
 :: Run main.py
-@rshell repl ~ from main import run ~ run() ~
+@rshell repl ~ from main import run ~ run()
