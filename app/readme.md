@@ -46,9 +46,23 @@ Please don't waste too much time.
 [Running the app with buildozer using WSL](https://buildozer.readthedocs.io/en/latest/quickstart.html#run-my-application-from-windows-10)
 
 If you have problems connecting with adb, see the following link: [How to connect your phone with adb using WSL](https://stackoverflow.com/questions/62145379/how-to-connect-android-studio-running-inside-wsl2-with-connected-devices-or-andr)
+You must use the same adb version on Windows and WSL.
 
 If everything is configured correctly, you can compile, run and save a log file with errors and prints with the following command:
 
     buildozer -v android debug deploy run logcat | grep python > ./bin/build_log.txt
 
+Quick reminder to connect adb:
+     
+    On windows:
+    adb devices  <-- you should see a device on the list
+    adb tcpip 5555
+
+    On WSL:
+    adb devices  <-- you should NOT see devices at this moment
+    adb connect PHONE_IP:5555  <-- should connect successfully
+
+    Useful:
+    adb kill-server
+    adb start-server
 

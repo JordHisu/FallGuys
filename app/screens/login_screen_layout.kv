@@ -2,8 +2,36 @@
 
 <LoginScreen>:
     name: "LoginScreen"
-    BoxLayout:
-        TextInput:
-        TextInput:
-    Label:
-        text: "This is the LoginScreen"
+    canvas:
+        Color:
+            rgba: 0, 1, 0, .8
+        Line:
+            rectangle: 0, 0, self.width, self.height
+            width: 4
+    LoginTextInput:
+        id: username_input
+        pos_hint: {'center_x': .5, 'center_y': .6}
+        hint_text: "Username"
+    LoginTextInput:
+        id: password_input
+        pos_hint: {'center_x': .5, 'center_y': .5}
+        hint_text: "Password"
+        password: True
+    LoginButton:
+        text: "Login"
+        pos_hint: {'center_x': .5, 'center_y': .3}
+        disabled: not(bool(password_input.text) and bool(username_input.text))
+    LoginButton:
+        text: str(root.pos) + "\n" + str(root.size)
+        pos_hint: {'center_x': .5, 'center_y': .2}
+
+
+<LoginTextInput@TextInput>:
+    size_hint_min_y: 35
+    size_hint_x: .7
+    size_hint_y: .075
+
+<LoginButton@Button>:
+    size_hint_min_y: 35
+    size_hint_x: .7
+    size_hint_y: .075
