@@ -9,18 +9,28 @@
 #: import StepScreen screens.step_screen.StepScreen
 
 TopOfEverything:
-	MyScreenManager:
-	    height: root.height - (header.height + footer.height)
-	    size_hint_y: None
-	    y: footer.height
-	    BodyStanceScreen:
-	    LiveLocationScreen:
-	    LoginScreen:
-	    NotificationScreen:
-	    SettingsScreen:
-	    SignupScreen:
-	    StepScreen:
-	Header:
-	    id: header
-    Footer:
-        id: footer
+    BoxLayout:
+        orientation: 'vertical'
+#        Header:
+#            id: header
+        MyScreenManager:
+            canvas:
+                Color:
+                    rgba: .5, .7, 0, .5
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 1, 0, 0, .8
+                Line:
+                    rectangle: self.x,self.y,self.width,self.height
+                    width: 5
+#            BodyStanceScreen:
+            LiveLocationScreen:
+            LoginScreen:
+            NotificationScreen:
+            SettingsScreen:
+            SignupScreen:
+            StepScreen:
+        Footer:
+            id: footer
