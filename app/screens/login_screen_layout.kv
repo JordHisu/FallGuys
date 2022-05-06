@@ -21,6 +21,7 @@
         text: "Login"
         pos_hint: {'center_x': .5, 'center_y': .3}
         disabled: not(bool(password_input.text) and bool(username_input.text))
+
     LoginButton:
         text: str(root.pos) + "\n" + str(root.size)
         pos_hint: {'center_x': .5, 'center_y': .2}

@@ -1,7 +1,7 @@
 # https://github.com/kivy-garden/mapview
 # https://mapview.readthedocs.io/en/latest/mapview/
 
-##: import MapView kivy_garden.mapview.MapView
+#: import MapView kivy_garden.mapview.MapView
 
 <LiveLocationScreen>:
     name: "LiveLocationScreen"
@@ -22,7 +22,7 @@
                 rectangle: self.x,self.y,self.width,self.height
                 width: 3
 
-#    MapView:
-#        zoom: 11
-#        on_parent:
-#            self.center_on(-25.4462, -49.2906)
+    MapView:
+        zoom: 11
+        on_parent:
+            self.center_on(-25.4462, -49.2906)
