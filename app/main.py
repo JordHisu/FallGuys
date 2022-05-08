@@ -6,6 +6,7 @@ from kivy.lang.builder import Builder
 from kivy.uix.floatlayout import FloatLayout
 from kivy.core.window import Window
 from kivy.uix.screenmanager import ScreenManager
+from kivy.clock import Clock
 from glob import glob
 
 
@@ -33,25 +34,19 @@ class TopOfEverything(FloatLayout):
         self.decide_screen_size()
         self.screen_manager = None
 
-    def on_children(self, obj, children):
-        new_child = children[0]  # The first element from children is always the new child
-        if isinstance(new_child, ScreenManager):
-            self.screen_manager = new_child
-
     def decide_screen_size(self):
         platform = kivy.utils.platform
         if platform == 'win':
             Window.size = self.INITIAL_WINDOW_SIZE
-        elif platform == 'android':
-            Window.maximize()
-        else:
-            Window.size = self.INITIAL_WINDOW_SIZE
 
 
 class MyScreenManager(ScreenManager):
-    def add_widget(self, screen, *args, **kwargs):
-        super().add_widget(screen, *args, **kwargs)
-        screen.root_widget = self.parent
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_once(self.after_init, 0)
+
+    def after_init(self, dt):
+        App.get_running_app().root.screen_manager = self
 
     def change_screen(self, screen_name, *args):
         self.current = screen_name

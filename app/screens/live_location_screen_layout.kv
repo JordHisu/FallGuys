@@ -1,10 +1,27 @@
-
+# https://github.com/kivy-garden/mapview
 # https://mapview.readthedocs.io/en/latest/mapview/
+
+#: import MapView kivy_garden.mapview.MapView
 
 <LiveLocationScreen>:
     name: "LiveLocationScreen"
+    id: screen
+    on_size: print(self.size)
+    canvas:
+        Color:
+            rgba: 0, 1, 0, .8
+        Line:
+            rectangle: 0,0,self.width,self.height
+            width: 4
     Label:
-        text: "This is the LiveLocationScreen"
+        text: "This is the LiveLocationScreen\n" + "pos: " + str(screen.pos) + "\ntop: " + str(screen.top) + "\nright: " + str(screen.right)
+        canvas:
+            Color:
+                rgba: 0, 0, 1, .8
+            Line:
+                rectangle: self.x,self.y,self.width,self.height
+                width: 3
+
     MapView:
         zoom: 11
         on_parent:

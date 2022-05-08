@@ -3,3 +3,5 @@
 .buildozer
 build_log.txt
 embedded/main.py
+app/cache
+app_test/
