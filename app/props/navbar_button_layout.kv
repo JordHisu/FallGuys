@@ -7,6 +7,4 @@
     unselected_image: None
     source: self.unselected_image
     on_release:
-        app.get_running_app().root.screen_manager.change_screen(self.destination)
-        self.parent.parent.unselect_all_image_buttons()
-        self.select()
+        app.root.screen_manager.change_screen(self.destination)

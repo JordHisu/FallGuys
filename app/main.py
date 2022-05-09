@@ -1,17 +1,22 @@
 import os
+from glob import glob
 
 import kivy.utils
 from kivy.app import App
+from kivy.clock import Clock
+from kivy.core.window import Window
 from kivy.lang.builder import Builder
 from kivy.uix.floatlayout import FloatLayout
-from kivy.core.window import Window
 from kivy.uix.screenmanager import ScreenManager
-from kivy.clock import Clock
-from glob import glob
+
+from utils.account_creator import AccountCreator
+from utils.session_manager import SessionManager
 
 
 class FallGuysApp(App):
     MAIN_LAYOUT_FILE = 'layout.kv'
+    session_manager = SessionManager()
+    account_creator = AccountCreator()
 
     def build(self):
         root = self.load_kv_files()
@@ -49,6 +54,7 @@ class MyScreenManager(ScreenManager):
         App.get_running_app().root.screen_manager = self
 
     def change_screen(self, screen_name, *args):
+        self.parent.ids.footer.select_button(screen_name)
         self.current = screen_name
 
 

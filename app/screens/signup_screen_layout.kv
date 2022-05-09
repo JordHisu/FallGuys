@@ -1,6 +1,55 @@
 
+#: import CreateAccountButton props.create_account_button.CreateAccountButton
 
 <SignupScreen>:
     name: "SignupScreen"
-    Label:
-        text: "This is the SignupScreen"
+    BoxLayout:
+        id: signup_form
+        orientation: 'vertical'
+        size_hint: .8, .6
+        spacing: dp(15)
+        pos_hint: {'top': .9, 'center_x': 0.5}
+        SignupTextInput:
+            id: username_input
+            hint_text: 'Username'
+        SignupTextInput:
+            id: password_input
+            hint_text: 'Password'
+            password: True
+        SignupTextInput:
+            id: email_input
+            hint_text: 'Email address'
+        SignupTextInput:
+            id: phone_input
+            hint_text: 'Emergency Phone Number'
+        SignupTextInput:
+            id: device_id_input
+            hint_text: 'Device ID'
+        BoxLayout:
+            # This exists to force widgets to stack up when all of them reach their max height
+
+    CustomCreateAccountButton:
+        text: "Create Account"
+        creation_arguments: {'username': username_input.text, 'password': password_input.text, 'email': email_input.text, 'phone': phone_input.text, 'device_id': device_id_input.text}
+        disabled: True
+        on_creation_arguments:
+            self.disabled = False in map(bool, self.creation_arguments.values())
+
+    BackButton:
+        text: "Back"
+        on_release: app.root.screen_manager.change_screen("LoginScreen")
+
+
+
+
+<SignupTextInput@TextInput+CustomSizingForSignupScreenWidgets>:
+    multiline: False
+<CustomCreateAccountButton@CreateAccountButton+CustomSizingForSignupScreenWidgets>:
+    size_hint: .7, .075
+    pos_hint: {'center_x': .5, 'center_y': .2}
+<BackButton@Button+CustomSizingForSignupScreenWidgets>:
+    size_hint: .7, .075
+    pos_hint: {'center_x': .5, 'center_y': .1}
+<CustomSizingForSignupScreenWidgets@Widget>:
+    size_hint_max_y: dp(50)
+    size_hint_min_y: dp(35)
