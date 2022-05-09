@@ -1,7 +1,12 @@
 #: import NavbarButton props.navbar_button.NavbarButton
 
 <Footer>:
-    size_hint_y: .09
+    true_size_hint_y: .09
+    size_hint_y: 0
+    should_show: app.session_manager.USER_LOGGED
+    on_should_show:
+        self.show() if self.should_show else self.hide()
+
     Image:
         source: 'images/NavBar.png'
         keep_ratio: False
@@ -12,28 +17,19 @@
             destination: "BodyStanceScreen"
             selected_image: "images/NavBar-Health-On.png"
             unselected_image: "images/NavBar-Health-Off.png"
-            on_parent: self.select()
         NavbarButton:
             destination: "LiveLocationScreen"
             selected_image: "images/NavBar-Location-On.png"
             unselected_image: "images/NavBar-Location-Off.png"
         NavbarButton:
-            destination: "LoginScreen"
+            destination: "StepScreen"
             selected_image: "images/NavBar-Position-On.png"
             unselected_image: "images/NavBar-Position-Off.png"
         NavbarButton:
             destination: "NotificationScreen"
-            selected_image: "images/NavBar-Settings-On.png"
-            unselected_image: "images/NavBar-Settings-Off.png"
+            selected_image: "images/NavBar-Health-On.png"
+            unselected_image: "images/NavBar-Health-Off.png"
         NavbarButton:
             destination: "SettingsScreen"
-            selected_image: "images/NavBar-Health-On.png"
-            unselected_image: "images/NavBar-Health-Off.png"
-        NavbarButton:
-            destination: "SignupScreen"
-            selected_image: "images/NavBar-Health-On.png"
-            unselected_image: "images/NavBar-Health-Off.png"
-        NavbarButton:
-            destination: "StepScreen"
-            selected_image: "images/NavBar-Health-On.png"
-            unselected_image: "images/NavBar-Health-Off.png"
+            selected_image: "images/NavBar-Settings-On.png"
+            unselected_image: "images/NavBar-Settings-Off.png"

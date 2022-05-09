@@ -1,13 +1,8 @@
 
+#: import LoginButton props.login_button.LoginButton
 
 <LoginScreen>:
     name: "LoginScreen"
-    canvas:
-        Color:
-            rgba: 0, 1, 0, .8
-        Line:
-            rectangle: 0, 0, self.width, self.height
-            width: 4
     LoginTextInput:
         id: username_input
         pos_hint: {'center_x': .5, 'center_y': .6}
@@ -17,22 +12,25 @@
         pos_hint: {'center_x': .5, 'center_y': .5}
         hint_text: "Password"
         password: True
-    LoginButton:
+    CustomLoginButton:
         text: "Login"
-        pos_hint: {'center_x': .5, 'center_y': .3}
-        disabled: not(bool(password_input.text) and bool(username_input.text))
-
-    LoginButton:
-        text: str(root.pos) + "\n" + str(root.size)
         pos_hint: {'center_x': .5, 'center_y': .2}
+        disabled: False in map(bool, [username_input.text, password_input.text])
 
+    SignupButton:
+        text: "Sign up"
+        pos_hint: {'center_x': .5, 'center_y': .1}
+        on_release:
+            root.manager.change_screen("SignupScreen")
 
-<LoginTextInput@TextInput>:
-    size_hint_min_y: 35
+<CustomSizingForLoginScreenWidgets@Widget>:
+    size_hint_min_y: dp(35)
+    size_hint_max_y: dp(50)
     size_hint_x: .7
     size_hint_y: .075
 
-<LoginButton@Button>:
-    size_hint_min_y: 35
-    size_hint_x: .7
-    size_hint_y: .075
+<LoginTextInput@TextInput+CustomSizingForLoginScreenWidgets>:
+    multiline: False
+<SignupButton@Button+CustomSizingForLoginScreenWidgets>:
+<CustomLoginButton@LoginButton+CustomSizingForLoginScreenWidgets>:
+
