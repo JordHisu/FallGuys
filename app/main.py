@@ -21,15 +21,6 @@ class FallGuysApp(App):
     notification_handler = NotificationHandler()
 
     def build(self):
-        root = self.load_kv_files()
-        return root
-
-    def load_kv_files(self):
-        main_path = os.path.dirname(os.path.realpath(__file__))
-        layout_files = glob(f"{main_path}/**/*.kv", recursive=True)
-        layout_files.remove(os.path.join(main_path, self.MAIN_LAYOUT_FILE))
-        for file in layout_files:
-            Builder.load_file(file)
         return Builder.load_file(self.MAIN_LAYOUT_FILE)
 
 
@@ -37,7 +28,7 @@ class TopOfEverything(FloatLayout):
     INITIAL_WINDOW_SIZE = [300, 533]
 
     def __init__(self, **kwargs):
-        super(TopOfEverything, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.decide_screen_size()
         self.screen_manager = None
 
