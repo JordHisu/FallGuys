@@ -9,6 +9,7 @@ from kivy.lang.builder import Builder
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager
 
+from utils.notification_handler import NotificationHandler
 from utils.account_creator import AccountCreator
 from utils.session_manager import SessionManager
 
@@ -17,6 +18,7 @@ class FallGuysApp(App):
     MAIN_LAYOUT_FILE = 'layout.kv'
     session_manager = SessionManager()
     account_creator = AccountCreator()
+    notification_handler = NotificationHandler()
 
     def build(self):
         root = self.load_kv_files()
