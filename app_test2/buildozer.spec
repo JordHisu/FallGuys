@@ -29,7 +29,7 @@ source.exclude_dirs = bin, cache
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.5
+version = 0.6
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -37,7 +37,8 @@ version = 0.5
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,kivy_garden.mapview,openssl,requests,charset_normalizer,chardet,idna,urllib3,certifi
+requirements = python3,kivy
+#,kivy_garden.mapview,openssl,requests,charset_normalizer,chardet,idna,urllib3,certifi
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -99,7 +100,7 @@ android.permissions = INTERNET
 # (bool) If True, then skip trying to update the Android sdk
 # This can be useful to avoid excess Internet downloads or save time
 # when an update is due and you just want to test/build your package
-#android.skip_update = True
+android.skip_update = True
 
 # (bool) If True, then automatically accept SDK license
 # agreements. This is intended for automation only. If set to False,

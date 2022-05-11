@@ -1,5 +1,8 @@
+from kivy.lang import Builder
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
+
+Builder.load_file("props/navbar_button_layout.kv")
 
 
 class NavbarButton(ButtonBehavior, Image):

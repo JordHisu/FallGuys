@@ -1,8 +1,11 @@
 
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen
-from app.props.notification import Notification
+from props.notification import Notification
+
+Builder.load_file("screens/notification_screen_layout.kv")
 
 
 class NotificationScreen(Screen):

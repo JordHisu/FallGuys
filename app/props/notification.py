@@ -1,8 +1,10 @@
-
+from kivy.lang import Builder
 from kivy.uix.relativelayout import RelativeLayout
 from datetime import datetime, timedelta
 from kivy.properties import NumericProperty
 from kivy.properties import StringProperty
+
+Builder.load_file("props/notification_layout.kv")
 
 
 class Notification(RelativeLayout):
@@ -15,7 +17,7 @@ class Notification(RelativeLayout):
         super().__init__(**kwargs)
         creation_date = datetime.now()
         self.creation_date = creation_date.timestamp()
-        expire_date = creation_date + timedelta(days=self.NOTIFICATION_EXPIRATION_TIME)
+        expire_date = creation_date + timedelta(minutes=self.NOTIFICATION_EXPIRATION_TIME)
         self.expire_date = expire_date.timestamp()
         self.readable_creation_date = self.get_readable_creation_date()
 

@@ -1,6 +1,8 @@
-
+from kivy.lang import Builder
 from kivy.uix.floatlayout import FloatLayout
 from kivy.animation import Animation
+
+Builder.load_file("props/footer_layout.kv")
 
 
 class Footer(FloatLayout):
