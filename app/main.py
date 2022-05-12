@@ -1,4 +1,6 @@
 import json
+import os
+from pathlib import Path
 
 import kivy.utils
 from kivy.app import App
@@ -46,16 +48,23 @@ class FallGuysApp(App):
         self.config.write()
 
     def build_config(self, config):
-        with open("utils/default_configuration.json", 'r') as config_file:
+        target_path = self.resolve_path("utils/default_configuration.json")
+        with open(target_path, 'r') as config_file:
             config_json = json.load(config_file)
         for title, content in config_json.items():
             config.setdefaults(title, content)
 
     def build_settings(self, settings):
-        settings.add_json_panel('', self.config, filename="utils/editable_settings.json")
+        target_path = self.resolve_path("utils/editable_settings.json")
+        settings.add_json_panel('', self.config, filename=target_path)
 
     def on_config_change(self, config, section, key, value):
         self.config_manager.send_config_to_server(key, value)
+
+    def resolve_path(self, relative_path):
+        current_path = Path(os.path.abspath(__file__)).parent.resolve()
+        absolute_path = os.path.join(current_path, relative_path)
+        return absolute_path
 
 
 class TopOfEverything(FloatLayout):
