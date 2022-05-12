@@ -5,3 +5,8 @@ build_log.txt
 embedded/main.py
 app/cache
 app_test/
+app_test2/
+app/*.ini
+
+
+
