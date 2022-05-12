@@ -1,0 +1,8 @@
+{
+    "configuration": {
+        "gps_polling_period": "42"
+    },
+    "storage": {
+        "notifications": []
+    }
+}

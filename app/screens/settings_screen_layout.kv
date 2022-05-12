@@ -2,5 +2,15 @@
 
 <SettingsScreen>:
     name: "SettingsScreen"
-    Label:
-        text: "This is the SettingsScreen"
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: "Settings"
+            font_size: dp(30)
+            size_hint_y: None
+            height: dp(self.texture_size[1] + 30)
+        BoxLayout:
+            id: settings_box
+        BoxLayout:
+            size_hint_y: None
+            height: root.height * .09
