@@ -1,17 +1,18 @@
-import os
-from glob import glob
+import json
 
 import kivy.utils
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang.builder import Builder
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager
+from kivy.uix.settings import SettingsWithNoMenu
 
-from utils.notification_handler import NotificationHandler
 from utils.account_creator import AccountCreator
+from utils.config_manager import ConfigManager
+from utils.notification_handler import NotificationHandler
 from utils.session_manager import SessionManager
+from utils.data_receiver import DataReceiver
 
 
 class FallGuysApp(App):
@@ -19,9 +20,42 @@ class FallGuysApp(App):
     session_manager = SessionManager()
     account_creator = AccountCreator()
     notification_handler = NotificationHandler()
+    config_manager = ConfigManager()
+    data_receiver = DataReceiver()
 
     def build(self):
+        self.settings_cls = SettingsWithNoMenu
+        self.use_kivy_settings = False
         return Builder.load_file(self.MAIN_LAYOUT_FILE)
+
+    def on_start(self):
+        settings = self.create_settings()
+        settings_screen = self.root.ids.screen_manager.get_screen("SettingsScreen")
+        settings_screen.ids.settings_box.add_widget(settings)
+
+        stored_notifications = json.loads(self.config.get('storage', 'notifications'))
+        for notification in stored_notifications:
+            self.root.ids.screen_manager.get_screen("NotificationScreen").add_notification(notification)
+
+        gps_callback = self.root.ids.screen_manager.get_screen("LiveLocationScreen").receive_gps_data
+        self.data_receiver.set_gps_callback(gps_callback)
+
+    def on_stop(self):
+        notifications = self.root.ids.screen_manager.get_screen("NotificationScreen").get_current_notifications_json()
+        self.config.set('storage', 'notifications', json.dumps(notifications))
+        self.config.write()
+
+    def build_config(self, config):
+        with open("utils/default_configuration.json", 'r') as config_file:
+            config_json = json.load(config_file)
+        for title, content in config_json.items():
+            config.setdefaults(title, content)
+
+    def build_settings(self, settings):
+        settings.add_json_panel('', self.config, filename="utils/editable_settings.json")
+
+    def on_config_change(self, config, section, key, value):
+        self.config_manager.send_config_to_server(key, value)
 
 
 class TopOfEverything(FloatLayout):
@@ -30,7 +64,6 @@ class TopOfEverything(FloatLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.decide_screen_size()
-        self.screen_manager = None
 
     def decide_screen_size(self):
         platform = kivy.utils.platform
@@ -39,13 +72,6 @@ class TopOfEverything(FloatLayout):
 
 
 class MyScreenManager(ScreenManager):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_once(self.after_init, 0)
-
-    def after_init(self, dt):
-        App.get_running_app().root.screen_manager = self
-
     def change_screen(self, screen_name, *args):
         self.parent.ids.footer.select_button(screen_name)
         self.current = screen_name
