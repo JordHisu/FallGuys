@@ -6,9 +6,7 @@ public class ConfigurationPage : Entity<ConfigurationPage>
 {
     public string? Token { get; set; }
     public string? UserId { get; set; }
-    public int? Userlocpp { get; set; }
-    public int? Hrtbldpp { get; set; }
-    public List<int>? Heartrange { get; set; }
-    public int? Oxygenrange { get; set; }
+    public double? StepSamplingRate { get; set; }
+    public double? UserLocationSamplingRange { get; set; }
     public override ConfigurationPage self() => this;
 }

@@ -20,12 +20,18 @@ public class ConfigurationController : ControllerBase
         }
 
         var config = (await ConfigurationPage.Where(p => p.UserId == user.Id)).FirstOrDefault();
-        config.Heartrange = page.Heartrange ?? config.Heartrange;
-        config.Hrtbldpp = page.Hrtbldpp ?? config.Hrtbldpp;
-        config.Oxygenrange = page.Oxygenrange ?? config.Oxygenrange;
-        config.Userlocpp = page.Userlocpp ?? config.Userlocpp;
-        config.Token = page.Token;
-        config.Save();
+        if (config == null)
+        {
+            page.UserId = user.Id;
+            await page.Save();
+        }
+        else
+        {
+            config.UserLocationSamplingRange = page.UserLocationSamplingRange ?? config.UserLocationSamplingRange;
+            config.StepSamplingRate = page.StepSamplingRate ?? config.StepSamplingRate;
+            config.Token = page.Token;
+            await config.Save();
+        }
         
         return new {
             status = "OK"
@@ -47,18 +53,14 @@ public class ConfigurationController : ControllerBase
         {
             return new {
                 status = "OK",
-                heartrange = -1,
-                hrtbldpp = -1,
-                oxygenrange = -1,
-                userlocpp = -1,
+                UserLocationSamplingRange = -1,
+                StepSamplingRate = -1
             };
         }
         return new {
             status = "OK",
-            heartrange = page.Heartrange,
-            hrtbldpp = page.Hrtbldpp,
-            oxygenrange = page.Oxygenrange,
-            userlocpp = page.Userlocpp,
+            StepSamplingRate = page.StepSamplingRate,
+            UserLocationSamplingRange = page.UserLocationSamplingRange
         };
     }
 }

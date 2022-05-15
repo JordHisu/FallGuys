@@ -9,6 +9,6 @@ public class User : Entity<User>
     public string Password { get; set; } = "";
     public string Email { get; set; } = "";
     public string Phone { get; set; } = "";
-    public string Device { get; set; } = "";
+    public string? Device { get; set; } = "";
     public override User self() => this;
 }

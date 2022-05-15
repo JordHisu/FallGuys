@@ -12,6 +12,8 @@ public class UserController : ControllerBase
     [HttpPost("createuser")]
     public async Task<object> createuser([FromBody]User user)
     {
+        Cryptography cryptography = new Cryptography();
+        user.Password = cryptography.Encrypt(user.Password);
         await user.Save();
         return new {
             status = "OK",
@@ -22,6 +24,8 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public async Task<object> login([FromBody]User user)
     {
+        Cryptography cryptography = new Cryptography();
+        user.Password = cryptography.Encrypt(user.Password);
         var loggedusers = await Models.User.Where(u => u.Email == user.Email && u.Password == user.Password);
         var logged = loggedusers.FirstOrDefault();
         if (logged == null)

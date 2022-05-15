@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using server.Models;
 using System.Threading.Tasks;
@@ -18,8 +19,35 @@ public class DataController : ControllerBase
                 status = "MT"
             };
         }
-        pack.UserId = user.Id;
-        await pack.Save();
+        for (int i = 0; i < (pack?.Steps?.Count ?? 0); i++)
+        {
+            await new Step()
+            {
+                Moment = DateTime.Now,
+                UserId = user.Id,
+                Value = pack.Steps[i]
+            }.Save();
+        }
+        for (int i = 0; i < (pack?.Pressure?.Count ?? 0); i += 2)
+        {
+            await new Pressure()
+            {
+                Moment = DateTime.Now,
+                UserId = user.Id,
+                Low = pack.Pressure[i],
+                High = pack.Pressure[i + 1]
+            }.Save();
+        }
+        for (int i = 0; i < (pack?.Livelocation?.Count ?? 0); i += 2)
+        {
+            await new LiveLocation()
+            {
+                Moment = DateTime.Now,
+                UserId = user.Id,
+                Latitude = pack.Livelocation[i],
+                Longitude = pack.Livelocation[i + 1]
+            }.Save();
+        }
         return new {
             status = "OK"
         };
@@ -35,13 +63,14 @@ public class DataController : ControllerBase
                 status = "MT"
             };
         }
-        var datas = await DataPack.Where(dp => dp.UserId == user.Id);
+        var pressures = await Pressure.Where(dp => dp.UserId == user.Id);
+        var steps = await Step.Where(dp => dp.UserId == user.Id);
+        var livelocations = await LiveLocation.Where(dp => dp.UserId == user.Id);
         
         return new {
-            bloodoxygen = datas.SelectMany(x => x.Bloodoxygen),
-            heartbeat = datas.SelectMany(x => x.Heartbeat),
-            pressure = datas.SelectMany(x => x.Pressure),
-            livelocation = datas.SelectMany(x => x.Livelocation),
+            steps = steps.Select(x => x.Value),
+            pressure = pressures.SelectMany(x => new double[] { x.Low, x.High }),
+            livelocation = livelocations.SelectMany(x => new double[] { x.Latitude, x.Longitude }),
         };
     }
 }

@@ -17,10 +17,10 @@ public class NotificationController : ControllerBase
                 status = "MT"
             };
         }
+        not.UserId = user.Id;
         await not.Save();
         return new {
             status = "OK",
-
         };
     }
     
