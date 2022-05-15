@@ -1,4 +1,3 @@
-
 from files.tests.bluetooth import bluetooth
 
 

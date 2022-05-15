@@ -9,7 +9,7 @@ class Bluetooth:
 
         self.log = log
 
-        self.log.Info("Bluetooth UART: " + str(self.uart))
+        self.log.info("Bluetooth UART: " + str(self.uart))
 
         print("- uart -")
         self.waitResp()
@@ -37,7 +37,7 @@ class Bluetooth:
         if not is_slave:
             self.sendCMD_waitResp("AT+INQ\r\n", 2000)
             response = self.sendCMD_waitResp("AT+CONN"+ device_to_connect + "\r\n", 2000)
-            self.log.Info("Connection Bluetooth: " + str(response))
+            self.log.info("Connection Bluetooth: " + str(response))
 
     def sendCMD_waitResp(self, cmd, timeout=50):
         print("CMD: " + cmd)
@@ -54,9 +54,9 @@ class Bluetooth:
         return resp
 
     def send(self, msg):
-        print("Sending: " + msg)
-        self.log.Info("Sending by Bluetooth: " + str(msg))
-        self.uart.write(msg)
+        print("Sending: " + str(msg))
+        self.log.info("Sending by Bluetooth: " + str(msg))
+        self.uart.write(str(msg))
         print()
 
     def receive(self, timeout=500):

@@ -5,7 +5,6 @@ import machine
 
 class Barometer:
     def __init__(self, i2c_num, scl_pin, sda_pin, log, address=0x77, elevation=0):
-
         i2c = machine.I2C(i2c_num,
                           scl=machine.Pin(scl_pin),
                           sda=machine.Pin(sda_pin),
@@ -136,10 +135,10 @@ class Barometer:
             self.read()
             sum_temp += self.getTempC()
             sum_press += self.getPressureAdj()
-            time.sleep(0.1)
+            time.sleep(0.02)
         print("Values from sensor")
         values_barometer = str(sum_temp / times) + "C   " + str(self.convert2M(sum_press) / times) + 'm'
         print(values_barometer)
-        self.log.Info("Values from Barometer: " + values_barometer)
-        return sum_press / times
+        self.log.info("Values from Barometer: " + values_barometer)
+        return self.convert2M(sum_press) / times
 
