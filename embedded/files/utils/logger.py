@@ -1,16 +1,13 @@
+import time
 
 class Logger:
     def __init__(self):
-        file=open("log.log","w")
-        file.write("START APPLICATION")
-        file.close()
+        with open("log.txt", "a") as file:
+            file.write("\n\nSTART APPLICATION - " + str(time.localtime()) + "\n")
+    def info(self, message):
+        with open("log.txt", "a") as file:
+            file.write("INFO: " + str(message) + " - " + str(time.localtime()) + "\n")
 
-    def Info(self, message):
-        file = open("log.log", "a")
-        file.write("INFO: " + str(message) + "\n")
-        file.close()
-
-    def Error(self, message):
-        file = open("log.log", "a")
-        file.write("ERROR: " + str(message) + "\n")
-        file.close()
+    def error(self, message):
+        with open("log.txt", "a") as file:
+            file.write("ERROR: " + str(message) + " - " + str(time.localtime()) + "\n")
