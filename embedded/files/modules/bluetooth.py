@@ -2,7 +2,7 @@ import machine
 import utime
 
 class Bluetooth:
-    def __init__(self, name, uart_num, tx_pin, rx_pin, is_slave, log, device_to_connect="3CA551936A40"):
+    def __init__(self, name, uart_num, tx_pin, rx_pin, is_slave, log, device_to_connect="3CA551936A3B"):
         tx = machine.Pin(tx_pin)
         rx = machine.Pin(rx_pin)
         self.uart = machine.UART(uart_num, baudrate=9600, tx=tx, rx=rx)
@@ -61,9 +61,11 @@ class Bluetooth:
 
     def receive(self, timeout=500):
         prvMills = utime.ticks_ms()
+        bUart = ""
         while (utime.ticks_ms() - prvMills) < timeout:
             if self.uart.any():
                 b0 = self.uart.read(1)
-                bUart = bUart + b0
+                bUart = bUart + b0.decode('utf-8')
                 print("UART: " + b0.decode('utf-8'))
                 self.uart.write(b0.upper().decode('utf-8'))
+        return bUart
