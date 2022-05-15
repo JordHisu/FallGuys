@@ -1,0 +1,9 @@
+[
+    {
+        "type": "numeric",
+        "title": "GPS Polling Period",
+        "desc": "The period in seconds in which the GPS will get the user position",
+        "section": "configuration",
+        "key": "gps_polling_period"
+    }
+]

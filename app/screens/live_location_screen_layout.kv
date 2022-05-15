@@ -6,6 +6,11 @@
 <LiveLocationScreen>:
     name: "LiveLocationScreen"
     MapView:
-        zoom: 11
+        id: map
+        zoom: 2  # 11
         on_parent:
             self.center_on(-25.4462, -49.2906)
+        MapMarker:
+            id: marker
+            lat: -25.4462
+            lon: -49.2906

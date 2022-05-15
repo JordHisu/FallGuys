@@ -1,1 +1,2 @@
-python3 -m flask run
+clear
+dotnet run
