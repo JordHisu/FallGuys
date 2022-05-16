@@ -1,8 +1,9 @@
+
+
 from dataclasses import dataclass
 
 
 @dataclass
-class GPSData:
+class StepData:
     data_type: str
-    lat: float
-    lon: float
+    value: int

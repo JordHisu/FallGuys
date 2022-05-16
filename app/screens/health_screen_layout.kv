@@ -1,0 +1,71 @@
+
+#: import StepGraph props.graphs.step_graph.StepGraph
+#: import BarometerGraph props.graphs.barometer_graph.BarometerGraph
+
+
+<HealthScreen>:
+    name: "HealthScreen"
+    Label:
+        text: "Health"
+        font_size: dp(30)
+        size_hint_y: None
+        height: dp(self.texture_size[1] + 30)
+        pos_hint: {'top': 1}
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint: {'y': .09}
+        size_hint_y: .8
+        RelativeLayout:
+            PersonImage:
+                id: person
+            BedImage:
+                id: bed
+                transparency: 1 if person.lying else 0
+            AlertImage:
+                transparency: 1 if person.fell else 0
+        StepGraph:
+            id: step_graph
+        BarometerGraph:
+            id: barometer_graph
+
+
+<PersonImage@Image>:
+    source: "images/Person.png"
+    size_hint_y: .8
+    pos_hint: {'y': (0 if not self.lying else .2), 'center_x': .5 }
+    color: [1, 1, 1, 1] if not self.fell else [1, 0, 0, 1]
+    angle: 0
+    keep_ratio: True
+    allow_stretch: True
+    lying: True if self.angle % 360 == 270 else False
+    fell: True if self.angle % 360 == 90 else False
+    canvas.before:
+        PushMatrix
+        Rotate:
+            angle: self.angle
+            origin: self.center
+    canvas.after:
+        PopMatrix
+
+
+<BedImage@Image>:
+    source: "images/bed_original.png"
+    pos_hint: {'center_x': .5}
+    size_hint: .7, .6
+    keep_ratio: False
+    allow_stretch: True
+    transparency: 0
+    color: [1, 1, 1, self.transparency]
+
+
+<AlertImage@Image>:
+    source: "images/alert.png"
+    pos_hint: {'top': 1, 'right': 1}
+    size_hint: .4, .4
+    color: [1, 1, 1, self.transparency]
+    keep_ratio: True
+    allow_stretch: True
+    transparency: 0
+
+
+

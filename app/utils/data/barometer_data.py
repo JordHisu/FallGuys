@@ -1,8 +1,11 @@
+
+
 from dataclasses import dataclass
 
 
 @dataclass
-class GPSData:
+class BarometerData:
     data_type: str
-    lat: float
-    lon: float
+    source: str
+    value: float
+

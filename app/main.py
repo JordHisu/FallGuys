@@ -12,7 +12,6 @@ from kivy.uix.settings import SettingsWithNoMenu
 
 from utils.account_creator import AccountCreator
 from utils.config_manager import ConfigManager
-from utils.notification_handler import NotificationHandler
 from utils.session_manager import SessionManager
 from utils.data_receiver import DataReceiver
 
@@ -21,7 +20,6 @@ class FallGuysApp(App):
     MAIN_LAYOUT_FILE = 'layout.kv'
     session_manager = SessionManager()
     account_creator = AccountCreator()
-    notification_handler = NotificationHandler()
     config_manager = ConfigManager()
     data_receiver = DataReceiver()
 
@@ -37,10 +35,9 @@ class FallGuysApp(App):
 
         stored_notifications = json.loads(self.config.get('storage', 'notifications'))
         for notification in stored_notifications:
-            self.root.ids.screen_manager.get_screen("NotificationScreen").add_notification(notification)
+            self.root.ids.screen_manager.get_screen("NotificationScreen").add_notification_from_json(notification)
 
-        gps_callback = self.root.ids.screen_manager.get_screen("LiveLocationScreen").receive_gps_data
-        self.data_receiver.set_gps_callback(gps_callback)
+        self.set_callbacks()
 
     def on_stop(self):
         notifications = self.root.ids.screen_manager.get_screen("NotificationScreen").get_current_notifications_json()
@@ -65,6 +62,23 @@ class FallGuysApp(App):
         current_path = Path(os.path.abspath(__file__)).parent.resolve()
         absolute_path = os.path.join(current_path, relative_path)
         return absolute_path
+
+    def set_callbacks(self):
+        gps_callback = self.root.ids.screen_manager.get_screen("LiveLocationScreen").receive_gps_data
+        self.data_receiver.add_gps_callback(gps_callback)
+
+        barometer_callback = self.root.ids.screen_manager.get_screen("HealthScreen").add_barometer_point
+        self.data_receiver.add_barometer_callback(barometer_callback)
+
+        step_callback = self.root.ids.screen_manager.get_screen("HealthScreen").add_step_point
+        self.data_receiver.add_step_callback(step_callback)
+
+        notification_callbacks = [
+            self.root.ids.screen_manager.get_screen("NotificationScreen").add_notification,
+            self.root.ids.screen_manager.get_screen("HealthScreen").receive_notification,
+        ]
+        for callback in notification_callbacks:
+            self.data_receiver.add_notification_callback(callback)
 
 
 class TopOfEverything(FloatLayout):
