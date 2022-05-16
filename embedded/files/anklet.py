@@ -28,21 +28,25 @@ class Anklet:
             barometer_data = self.barometer.getBarometerData()
             bluetooth_received = self.bluetooth.receive()
             if bluetooth_received:
-                if "ALERT" in bluetooth_received:
+                if "CONNECTED" in bluetooth_received:
+                    print("Connected Bluetooth")
+                    self.log.info("Connected Bluetooth")
+                elif "ALERT" in bluetooth_received:
                     #send to LoRa alert
-                    print("Send to LORA")
+                    print("BUTTON ALERT: Send to LoRa")
                 else:
                     try:
-                        if int(bluetooth_received) - int(barometer_data) > 1:
+                        barometer_data = float(barometer_data) - 0.675  # offset to equal the barometers
+                        bluetooth_received = float(bluetooth_received)
+                        if barometer_data - bluetooth_received < 0.4:
                             # send alert to LoRa
-                            print("Fall detected")
+                            print("Fall detected - Send to LoRa")
                     except Exception as e:
-                        self.log.error(str(e))
+                        print("Error")
+                        self.log.error("Converting Bluetooth or Barometer Data " + str(e))
 
             # get data from GPS
             # get data from Accelerometer
             # send datas to LoRa
             # if received data from LoRa, alter the configuration
-            print(barometer_data)
-            print(bluetooth_received)
             utime.sleep(1)
