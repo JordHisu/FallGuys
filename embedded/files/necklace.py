@@ -12,7 +12,7 @@ class Necklace:
             uart_num=0,
             tx_pin=12,
             rx_pin=13,
-            is_slave=True,
+            is_slave=False,
             log=self.log
         )
         self.barometer = Barometer(

@@ -136,9 +136,9 @@ class Barometer:
             sum_temp += self.getTempC()
             sum_press += self.getPressureAdj()
             time.sleep(0.02)
-        print("Values from sensor")
+        # print("Values from sensor")
         values_barometer = str(sum_temp / times) + "C   " + str(self.convert2M(sum_press) / times) + 'm'
-        print(values_barometer)
+        # print(values_barometer)
         self.log.info("Values from Barometer: " + values_barometer)
         return self.convert2M(sum_press) / times
 
