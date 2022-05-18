@@ -1,5 +1,4 @@
 
-#: import LoginButton props.login_button.LoginButton
 
 <LoginScreen>:
     name: "LoginScreen"
@@ -12,10 +11,12 @@
         pos_hint: {'center_x': .5, 'center_y': .5}
         hint_text: "Password"
         password: True
-    CustomLoginButton:
+    LoginButton:
         text: "Login"
         pos_hint: {'center_x': .5, 'center_y': .2}
         disabled: False in map(bool, [username_input.text, password_input.text])
+        on_release:
+            root.login()
 
     SignupButton:
         text: "Sign up"
@@ -32,5 +33,5 @@
 <LoginTextInput@TextInput+CustomSizingForLoginScreenWidgets>:
     multiline: False
 <SignupButton@Button+CustomSizingForLoginScreenWidgets>:
-<CustomLoginButton@LoginButton+CustomSizingForLoginScreenWidgets>:
+<LoginButton@Button+CustomSizingForLoginScreenWidgets>:
 

@@ -10,6 +10,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.settings import SettingsWithNoMenu
 
+from app.utils.server_bridge import ServerBridge
 from utils.account_creator import AccountCreator
 from utils.config_manager import ConfigManager
 from utils.session_manager import SessionManager
@@ -22,6 +23,7 @@ class FallGuysApp(App):
     account_creator = AccountCreator()
     config_manager = ConfigManager()
     data_receiver = DataReceiver()
+    server_bridge = ServerBridge()
 
     def build(self):
         self.settings_cls = SettingsWithNoMenu
@@ -38,6 +40,8 @@ class FallGuysApp(App):
             self.root.ids.screen_manager.get_screen("NotificationScreen").add_notification_from_json(notification)
 
         self.set_callbacks()
+        self.handle_dummy_data_config_change(value=json.loads(self.config.get('configuration', 'generate_dummy_data')))
+        self.handle_server_request_period_config_change(value=json.loads(self.config.get('configuration', 'server_request_period')))
 
     def on_stop(self):
         notifications = self.root.ids.screen_manager.get_screen("NotificationScreen").get_current_notifications_json()
@@ -79,6 +83,19 @@ class FallGuysApp(App):
         ]
         for callback in notification_callbacks:
             self.data_receiver.add_notification_callback(callback)
+
+        self.config.add_callback(self.handle_dummy_data_config_change, section='configuration', key='generate_dummy_data')
+        self.config.add_callback(self.handle_gps_polling_period_config_change, section='configuration', key='gps_polling_period')
+        self.config.add_callback(self.handle_server_request_period_config_change, section='configuration', key='server_request_period')
+
+    def handle_dummy_data_config_change(self, section=None, key=None, value=None):
+        self.data_receiver.generate_fake_data() if bool(int(value)) else self.data_receiver.stop_fake_data()
+
+    def handle_gps_polling_period_config_change(self, section=None, key=None, value=None):
+        pass  # Send to server
+
+    def handle_server_request_period_config_change(self, section=None, key=None, value=None):
+        self.server_bridge.set_server_request_period(int(value))
 
 
 class TopOfEverything(FloatLayout):

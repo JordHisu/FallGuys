@@ -14,12 +14,9 @@ class DataReceiver:
         'step':         {'class': StepData,         'callbacks': []},
         'notification': {'class': NotificationData, 'callbacks': []},
     }
-
-    def __init__(self):
-        Clock.schedule_interval(self._generate_fake_data, timeout=5)
+    fake_data_event = None
 
     def receive_data(self, data):
-        # Server entrypoint for the app
         parsed_data = [self._create_wrapper(data_type, *content) for data_type, content in data]
         for item in parsed_data:
             self._dispatch(item)
@@ -35,6 +32,15 @@ class DataReceiver:
 
     def add_notification_callback(self, callback):
         self.data_types['notification']['callbacks'].append(callback)
+
+    def generate_fake_data(self):
+        self.fake_data_event = Clock.schedule_interval(self._generate_fake_data, timeout=5)
+
+    def stop_fake_data(self):
+        if self.fake_data_event is None:
+            return
+        self.fake_data_event.cancel()
+        self.fake_data_event = None
 
     def _generate_fake_data(self, dt):
         data = {
