@@ -5,5 +5,19 @@
         "desc": "The period in seconds in which the GPS will get the user position",
         "section": "configuration",
         "key": "gps_polling_period"
+    },
+    {
+        "type": "bool",
+        "title": "Generate Dummy Data",
+        "desc": "The application will generate dummy data if selected",
+        "section": "configuration",
+        "key": "generate_dummy_data"
+    },
+    {
+        "type": "numeric",
+        "title": "Server Request Period",
+        "desc": "The period in seconds in which the application will check for new data",
+        "section": "configuration",
+        "key": "server_request_period"
     }
 ]
