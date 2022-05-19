@@ -22,9 +22,9 @@ class LoRa:
         try:
             read = self.uart.readline()
             if read:
-                decided = read.decode('utf-8')
-                self.log.info("Received form LoRa: " + decided)
-                return decided
+                decoded = read.decode('utf-8')
+                self.log.info("Received form LoRa: " + decoded)
+                return decoded
         except Exception as e:
             self.log.error("Exception receiving from LoRa: " + str(e))
         return None
