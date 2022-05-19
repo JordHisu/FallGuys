@@ -10,7 +10,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.settings import SettingsWithNoMenu
 
-from app.utils.server_bridge import ServerBridge
+from utils.server_bridge import ServerBridge
 from utils.account_creator import AccountCreator
 from utils.config_manager import ConfigManager
 from utils.session_manager import SessionManager
@@ -34,33 +34,33 @@ class FallGuysApp(App):
         settings = self.create_settings()
         settings_screen = self.root.ids.screen_manager.get_screen("SettingsScreen")
         settings_screen.ids.settings_box.add_widget(settings)
-
-        stored_notifications = json.loads(self.config.get('storage', 'notifications'))
-        for notification in stored_notifications:
-            self.root.ids.screen_manager.get_screen("NotificationScreen").add_notification_from_json(notification)
-
         self.set_callbacks()
-        self.handle_dummy_data_config_change(value=json.loads(self.config.get('configuration', 'generate_dummy_data')))
-        self.handle_server_request_period_config_change(value=json.loads(self.config.get('configuration', 'server_request_period')))
-
-    def on_stop(self):
-        notifications = self.root.ids.screen_manager.get_screen("NotificationScreen").get_current_notifications_json()
-        self.config.set('storage', 'notifications', json.dumps(notifications))
-        self.config.write()
 
     def build_config(self, config):
         target_path = self.resolve_path("utils/default_configuration.json")
         with open(target_path, 'r') as config_file:
             config_json = json.load(config_file)
-        for title, content in config_json.items():
-            config.setdefaults(title, content)
+        for section, content in config_json.items():
+            config.setdefaults(section, content)
+
+    def save_configs(self, configs):
+        self.config.setall('configuration', configs)
+        self.config.write()
+        self.destroy_settings()
+        super().open_settings()
+
+    def on_config_change(self, config, section, key, value):
+        self.config_manager.send_config_to_server(key, value)
 
     def build_settings(self, settings):
         target_path = self.resolve_path("utils/editable_settings.json")
         settings.add_json_panel('', self.config, filename=target_path)
 
-    def on_config_change(self, config, section, key, value):
-        self.config_manager.send_config_to_server(key, value)
+    def display_settings(self, settings):
+        settings_screen = self.root.ids.screen_manager.get_screen("SettingsScreen")
+        settings_screen.ids.settings_box.clear_widgets()
+        settings_screen.ids.settings_box.add_widget(settings)
+        return True
 
     def resolve_path(self, relative_path):
         current_path = Path(os.path.abspath(__file__)).parent.resolve()
@@ -92,10 +92,10 @@ class FallGuysApp(App):
         self.data_receiver.generate_fake_data() if bool(int(value)) else self.data_receiver.stop_fake_data()
 
     def handle_gps_polling_period_config_change(self, section=None, key=None, value=None):
-        pass  # Send to server
+        pass
 
     def handle_server_request_period_config_change(self, section=None, key=None, value=None):
-        self.server_bridge.set_server_request_period(int(value))
+        self.server_bridge.set_server_request_period(int(float(value)))
 
 
 class TopOfEverything(FloatLayout):

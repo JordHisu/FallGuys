@@ -1,7 +1,7 @@
 {
     "configuration": {
         "gps_polling_period": "42",
-        "generate_dummy_data": false,
+        "generate_dummy_data": "0",
         "server_request_period": "5"
     },
     "storage": {
