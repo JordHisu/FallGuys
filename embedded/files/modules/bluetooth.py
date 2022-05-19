@@ -35,16 +35,18 @@ class Bluetooth:
         self.sendCMD_waitResp("AT+NAME\r\n")
 
         if not is_slave:
-            connected = False
-            while not connected:
+            while True:
                 self.sendCMD_waitResp("AT+INQ\r\n", 2000)
                 response = self.sendCMD_waitResp("AT+CONN"+ device_to_connect + "\r\n", 2000)
-                print(response)
-                if "CONNECTED" in response.decode("utf-8"):
-                    connected = True
+                if response:
+                    print('Bluetooth response: ' + str(response))
+                    try:
+                        if "CONNECTED" in response[:16].decode("utf-8"):
+                            self.log.info('Connected via Bluetooth!')
+                            break
+                    except Exception as e:
+                        self.log.error('Error trying to connect via Bluetooth ' + str(e))
                 print("Not connected yet")
-
-            self.log.info("Connection Bluetooth: " + str(response))
 
     def sendCMD_waitResp(self, cmd, timeout=50):
         print("CMD: " + cmd)
