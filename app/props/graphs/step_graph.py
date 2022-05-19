@@ -16,6 +16,7 @@ class StepGraph(BaseGraph):
         self.graph.add_plot(self.plot)
         self.graph.xmax = self.number_of_bars + 1
         self.add_widget(self.graph)
+        self.graph.xlabel = "Steps taken per day"
 
     def add_value(self, value):
         # Shifts everything to the left and adds the new value at the end

@@ -23,6 +23,7 @@ class BarometerGraph(BaseGraph):
         self.graph.add_plot(self.plots['anklet'])
         self.graph.add_plot(self.plots['necklace'])
         self.add_widget(self.graph)
+        self.graph.xlabel = "Barometer data per measurement"
 
     def add_value(self, source, value):
         plot = self.plots[source]

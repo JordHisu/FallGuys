@@ -9,11 +9,15 @@ class SessionManager(EventDispatcher):
     AUTH_TOKEN = None
 
     def login(self, email, password):
-        auth_code = App.get_running_app().server_bridge.login(email, password)
+        app = App.get_running_app()
+        auth_code = app.server_bridge.login(email, password)
         if auth_code is None:
             return
         self.AUTH_TOKEN = auth_code
         self.USER_LOGGED = True
+        # Probably not the best place to put this
+        configs = app.config_manager.get_configs_from_server()
+        app.save_configs(configs)
 
     def logout(self):
         self.USER_LOGGED = False
