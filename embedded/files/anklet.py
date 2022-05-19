@@ -1,5 +1,7 @@
 from files.modules.bluetooth import Bluetooth
 from files.modules.barometer import Barometer
+from files.modules.lora import LoRa
+from files.modules.accelerometer import Accelerometer
 from files.utils.logger import Logger
 import utime
 
@@ -22,6 +24,19 @@ class Anklet:
             log=self.log,
             address=0x77
         )
+        self.lora = LoRa(
+            uart_num=0,
+            tx_pin=0,
+            rx_pin=1,
+            log=self.log
+        )
+        # self.accelerometer = Accelerometer(
+        #     i2c_num=0,
+        #     scl_pin=21,
+        #     sda_pin=20,
+        #     log=self.log,
+        #     address=0x53
+        # )
 
     def run(self):
         while True:
@@ -32,15 +47,17 @@ class Anklet:
                     print("Connected Bluetooth")
                     self.log.info("Connected Bluetooth")
                 elif "ALERT" in bluetooth_received:
-                    #send to LoRa alert
                     print("BUTTON ALERT: Send to LoRa")
+                    self.log.info("BUTTON ALERT: Send to LoRa")
+                    self.lora.send("B")
                 else:
                     try:
                         barometer_data = float(barometer_data) - 0.675  # offset to equal the barometers
                         bluetooth_received = float(bluetooth_received)
                         if barometer_data - bluetooth_received < 0.4:
-                            # send alert to LoRa
-                            print("Fall detected - Send to LoRa")
+                            print("FALL DETECTED: Send to LoRa")
+                            self.log.info("FALL DETECTED: Send to LoRa")
+                            self.lora.send("F")
                     except Exception as e:
                         print("Error")
                         self.log.error("Converting Bluetooth or Barometer Data " + str(e))
@@ -48,5 +65,9 @@ class Anklet:
             # get data from GPS
             # get data from Accelerometer
             # send datas to LoRa
-            # if received data from LoRa, alter the configuration
-            utime.sleep(1)
+
+            lora_rcv = self.lora.receive()
+            if lora_rcv:
+                print('Received message from LoRa: ' + str(lora_rcv))
+            utime.sleep(0.5)
+
