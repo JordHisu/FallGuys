@@ -7,6 +7,6 @@ app/cache
 app_test/
 app_test2/
 app/*.ini
-
+.DS_store
 
 
