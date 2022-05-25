@@ -3,6 +3,7 @@
 .buildozer
 build_log.txt
 embedded/main.py
+embedded/.idea
 app/cache
 app_test/
 app_test2/
