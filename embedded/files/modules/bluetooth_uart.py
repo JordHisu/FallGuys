@@ -1,8 +1,11 @@
 import machine
 import utime
 
+# Necklace (orange wire): 3CA551936A3B
+# Anklet (white wire): 3CA551936A40
+
 class Bluetooth:
-    def __init__(self, name, uart_num, tx_pin, rx_pin, is_slave, log, device_to_connect="3CA551936A3B"):
+    def __init__(self, name, uart_num, tx_pin, rx_pin, is_slave, log, device_to_connect="3CA551936A40"):
         tx = machine.Pin(tx_pin)
         rx = machine.Pin(rx_pin)
         self.uart = machine.UART(uart_num, baudrate=9600, tx=tx, rx=rx)
@@ -33,6 +36,7 @@ class Bluetooth:
         self.sendCMD_waitResp("AT+PIN\r\n")
 
         self.sendCMD_waitResp("AT+NAME\r\n")
+        self.sendCMD_waitResp("AT+LADDR\r\n")
 
         if not is_slave:
             while True:
