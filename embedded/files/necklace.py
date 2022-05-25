@@ -1,4 +1,4 @@
-from files.modules.bluetooth import Bluetooth
+from files.modules.bluetooth_uart import Bluetooth
 from files.modules.barometer import Barometer
 from files.modules.button import Button
 from files.utils.logger import Logger
@@ -31,5 +31,5 @@ class Necklace:
             barometer_data = self.barometer.getBarometerData()
             self.bluetooth.send(barometer_data)
             if self.button.is_changed_state():
-                self.bluetooth.send("ALERT - Button pressed")
+                self.bluetooth.send("ALERT")
             utime.sleep(0.5)
