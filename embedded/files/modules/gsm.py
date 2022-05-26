@@ -53,8 +53,8 @@ class GSM:
     def reboot(self):
         self._power_cycle()
         self._configure_modem()
-        self._ensure_connected_to_network()
-        self._connect_internet()
+        #self._ensure_connected_to_network()
+        #self._connect_internet()
 
     def _power_cycle(self):
         if self.debug:
@@ -62,6 +62,9 @@ class GSM:
         self.power.value(0)
         sleep(0.2)
         self.power.value(1)
+
+    def sleep(self):
+        self.power.value(0)
 
     def send_notification(self, not_type):  # fall, stand, lying, panic
         if self.debug:
@@ -117,7 +120,7 @@ class GSM:
         if '200' not in res:
             raise Exception(f"GSM - Unknown http post response code: {res}")
 
-    def _connect_internet(self, attempts=10):
+    def _connect_internet(self, attempts=1000):
         if self.debug:
             print("[Debug GSM] - _connect_internet")
         while attempts > 0:
@@ -142,7 +145,7 @@ class GSM:
         except Exception as e:
             print('GSM - _disconnect_internet error -> ', str(e))
 
-    def _configure_modem(self, attempts=10):
+    def _configure_modem(self, attempts=1000):
         if self.debug:
             print("[Debug GSM] - _configure_modem")
         while attempts > 0:
@@ -171,7 +174,7 @@ class GSM:
             print(f'GSM - Failed to verify internet connection status: {e}')
         self.reboot()
 
-    def _ensure_connected_to_network(self, attempts=50):
+    def _ensure_connected_to_network(self, attempts=1000):
         if self.debug:
             print("[Debug GSM] - _ensure_connected_to_network")
         while attempts > 0:

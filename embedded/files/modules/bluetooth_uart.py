@@ -69,7 +69,7 @@ class Bluetooth:
     def send(self, msg):
         print("Sending: " + str(msg))
         self.log.info("Sending by Bluetooth: " + str(msg))
-        self.uart.write(str(msg + "\n"))
+        self.uart.write(str(msg) + "\n")
         print()
 
     def receive(self, timeout=500):
