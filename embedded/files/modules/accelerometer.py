@@ -1,6 +1,5 @@
 from files.utils.smbus import SMBus
 import machine
-from machine import Timer
 
 # ADXL345 constants
 EARTH_GRAVITY_MS2 = 9.80665
@@ -149,6 +148,3 @@ class Accelerometer:
             self.instep = True
         elif self.instep and mod < self.threshold:
             self.instep = False
-
-    def startStepThread(self):
-        pass
