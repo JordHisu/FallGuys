@@ -35,6 +35,8 @@ FIFO_MODE = 0x38
 
 class Accelerometer:
     address = None
+    nvalues = 20
+    threshold = 5
 
     def __init__(self, i2c_num, scl_pin, sda_pin, log, address=0x53, irq_callback=None):
         self.i2c = machine.I2C(i2c_num,
@@ -59,8 +61,6 @@ class Accelerometer:
         self.intyvalues = 0
         self.intzvalues = 0
         self.instep = False
-        self.nvalues = 20.0
-        self.threshold = 20
 
     def enableStreamMode(self):
         self.bus.write_byte_data(self.address, FIFO_MODE, MODE_STREAM)
