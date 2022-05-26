@@ -24,5 +24,5 @@ if __name__ == "__main__":
     m = Measurements()
     m.start()
     while True:
-        print("mararrão batata qualquer coisa")
+        print("macarrão batata qualquer coisa")
         utime.sleep(0.5)
