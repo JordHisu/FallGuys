@@ -1,6 +1,6 @@
 from files.utils.smbus import SMBus
-from time import sleep
 import machine
+from machine import Timer
 
 # ADXL345 constants
 EARTH_GRAVITY_MS2 = 9.80665
@@ -17,20 +17,26 @@ BW_RATE_200HZ = 0x0C
 BW_RATE_100HZ = 0x0B
 BW_RATE_50HZ = 0x0A
 BW_RATE_25HZ = 0x09
+BW_RATE_125HZ = 0x08
 
 RANGE_2G = 0x00
 RANGE_4G = 0x01
 RANGE_8G = 0x02
 RANGE_16G = 0x03
 
+MODE_STREAM = 0x40
+MODE_FIFO = 0x80
+MOD_TRIGGER = 0xC0
+
 MEASURE = 0x08
 AXES_DATA = 0x32
+FIFO_MODE = 0x38
 
 
 class Accelerometer:
     address = None
 
-    def __init__(self, i2c_num, scl_pin, sda_pin, log, address=0x53):
+    def __init__(self, i2c_num, scl_pin, sda_pin, log, address=0x53, irq_callback=None):
         self.i2c = machine.I2C(i2c_num,
                                scl=machine.Pin(scl_pin),
                                sda=machine.Pin(sda_pin),
@@ -39,11 +45,25 @@ class Accelerometer:
         self.bus = SMBus(self.i2c)
 
         self.log = log
-
+        self.callback = irq_callback
         self.address = address
-        self.setBandwidthRate(BW_RATE_100HZ)
+        self.setBandwidthRate(BW_RATE_25HZ)
         self.setRange(RANGE_2G)
         self.enableMeasurement()
+        self.enableStreamMode()
+
+        self.xvalues = []
+        self.yvalues = []
+        self.zvalues = []
+        self.intxvalues = 0
+        self.intyvalues = 0
+        self.intzvalues = 0
+        self.instep = False
+        self.nvalues = 20.0
+        self.threshold = 20
+
+    def enableStreamMode(self):
+        self.bus.write_byte_data(self.address, FIFO_MODE, MODE_STREAM)
 
     def enableMeasurement(self):
         self.bus.write_byte_data(self.address, POWER_CTL, MEASURE)
@@ -95,3 +115,40 @@ class Accelerometer:
         z = round(z, 4)
 
         return {"x": x, "y": y, "z": z}
+
+    def stepIteration(self):
+        axes = self.getAxes()
+        x = axes['x']
+        y = axes['y']
+        z = axes['z']
+
+        self.xvalues.append(x)
+        self.intxvalues += x
+        self.yvalues.append(y)
+        self.intyvalues += y
+        self.zvalues.append(z)
+        self.intzvalues += z
+
+        count = len(self.xvalues)
+
+        if len(self.xvalues) > self.nvalues:
+            self.intxvalues -= self.xvalues.pop(0)
+            self.intyvalues -= self.yvalues.pop(0)
+            self.intzvalues -= self.zvalues.pop(0)
+            
+        gx = self.intxvalues / count
+        gy = self.intyvalues / count
+        gz = self.intzvalues / count
+
+        x -= gx
+        y -= gy
+        z -= gz
+        mod = x * x + y * y + z * z
+        if not self.instep and mod > self.threshold:
+            self.callback()
+            self.instep = True
+        elif self.instep and mod < self.threshold:
+            self.instep = False
+
+    def startStepThread(self):
+        pass
