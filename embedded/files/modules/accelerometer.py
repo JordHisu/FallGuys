@@ -1,3 +1,4 @@
+from re import A
 from files.utils.smbus import SMBus
 import machine
 
@@ -142,9 +143,9 @@ class Accelerometer:
         x -= gx
         y -= gy
         z -= gz
-        mod = x * x + y * y + z * z
-        if not self.instep and mod > self.threshold:
+        a = x * gx + y * gy + z * gz
+        if not self.instep and a > self.threshold:
             self.callback()
             self.instep = True
-        elif self.instep and mod < self.threshold:
+        elif self.instep and a < self.threshold:
             self.instep = False
