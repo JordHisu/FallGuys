@@ -12,7 +12,6 @@ def blink_led(time=1):
 
 def toggle_led():
     led = Pin(25, Pin.OUT)
-    print("blink_led")
 
     if bool(led.value()):
         led.off()
