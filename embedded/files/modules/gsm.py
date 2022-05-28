@@ -53,8 +53,8 @@ class GSM:
     def reboot(self):
         self._power_cycle()
         self._configure_modem()
-        #self._ensure_connected_to_network()
-        #self._connect_internet()
+        self._ensure_connected_to_network()
+        self._connect_internet()
 
     def _power_cycle(self):
         if self.debug:

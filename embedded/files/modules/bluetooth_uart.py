@@ -10,6 +10,8 @@ class Bluetooth:
         rx = machine.Pin(rx_pin)
         self.uart = machine.UART(uart_num, baudrate=9600, tx=tx, rx=rx)
 
+        self.is_slave = is_slave
+
         self.log = log
 
         self.log.info("Bluetooth UART: " + str(self.uart))
@@ -19,6 +21,8 @@ class Bluetooth:
         self.sendCMD_waitResp("AT+RESET\r\n")  # Restore default setting
         self.sendCMD_waitResp("AT+PERM10110\r\n")  # Restore default setting
         self.sendCMD_waitResp("AT+PERM\r\n")  # Restore default setting
+        if not is_slave:
+            self.sendCMD_waitResp("AT+STARTEN2 \r\n")
 
         self.sendCMD_waitResp("AT+ROLE\r\n")
         if is_slave:
@@ -38,26 +42,42 @@ class Bluetooth:
         self.sendCMD_waitResp("AT+NAME\r\n")
         self.sendCMD_waitResp("AT+LADDR\r\n")
 
+        self.sendCMD_waitResp("AT+STAT\r\n")
+
         if not is_slave:
-            while True:
-                self.sendCMD_waitResp("AT+INQ\r\n", 2000)
-                response = self.sendCMD_waitResp("AT+CONN"+ device_to_connect + "\r\n", 2000)
-                if response:
-                    print('Bluetooth response: ' + str(response))
-                    try:
-                        if "CONNECTED" in response[:16].decode("utf-8"):
-                            self.log.info('Connected via Bluetooth!')
-                            break
-                    except Exception as e:
-                        self.log.error('Error trying to connect via Bluetooth ' + str(e))
-                print("Not connected yet")
+            self.ensure_is_connected(device_to_connect)
+
+
+        
+        
+    
+    def ensure_is_connected(self, device_to_connect="3CA551936A40"):
+        connected = False
+        while not connected:
+            resp = self.sendCMD_waitResp("AT+STAT\r\n")
+            if b'STAT=0' not in resp:
+                self.log.info('Already connected via Bluetooth!')
+                connected = True
+                return
+            response = self.sendCMD_waitResp("AT+CONN"+ device_to_connect + "\r\n", 3000)
+            if response:
+                print('Bluetooth response: ' + str(response))
+                try:
+                    if b"CONNECTED" in response:
+                        self.log.info('Connected via Bluetooth!')
+                        connected = True
+                    else:
+                        print("Not connected yet") 
+                except Exception as e:
+                    self.log.error('Error trying to connect via Bluetooth ' + str(e))
+
 
     def sendCMD_waitResp(self, cmd, timeout=50):
         print("CMD: " + cmd)
         self.uart.write(cmd)
         return self.waitResp(timeout)
 
-    def waitResp(self, timeout=2000):
+    def waitResp(self, timeout=3000):
         prvMills = utime.ticks_ms()
         resp = b""
         while (utime.ticks_ms() - prvMills) < timeout:
@@ -67,6 +87,8 @@ class Bluetooth:
         return resp
 
     def send(self, msg):
+        if not self.is_slave:
+            self.ensure_is_connected()
         print("Sending: " + str(msg))
         self.log.info("Sending by Bluetooth: " + str(msg))
         self.uart.write(str(msg) + "\n")

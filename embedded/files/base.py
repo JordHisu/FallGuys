@@ -1,6 +1,7 @@
 from files.modules.lora import LoRa
 from files.modules.gsm import GSM
 from files.utils.logger import Logger
+from files.utils.blink_led import toggle_led
 import utime
 
 class Base:
@@ -25,13 +26,16 @@ class Base:
             srv_endpoint='http://fall-guys-integration-workship.herokuapp.com',
             srv_user='x'
         )
-        self.gsm.sleep()
-        # self.gsm._disconnect_internet()
+        # self.gsm.sleep()
+        self.gsm.send_notification('stand')
+        self.gsm._disconnect_internet()
 
     def run(self):
         print("Waiting LoRa...")
         position = "stand"
+
         while True:
+            toggle_led()
             rcv_msg = self.lora.receive()
             if rcv_msg and rcv_msg != "":
                 print(rcv_msg)
@@ -45,29 +49,24 @@ class Base:
                     if type == 'BAR':
                         if "fall" in rcv_msg.keys() and rcv_msg['fall'] and position != "fall":
                             print("send notification to server - Fall")
-                            self.gsm.reboot()
+                            # self.gsm.reboot()
                             self.gsm.send_sms("041992238508", "Fall")
                             self.gsm._connect_internet()
                             self.gsm.send_notification('fall')
                             self.gsm._disconnect_internet()
-                            self.gsm.sleep()
                             position = "fall"
                         elif position == "fall":
-                            self.gsm.reboot()
                             position = "stand"
                             print("send notification to server - Stand")
                             self.gsm._connect_internet()
                             self.gsm.send_notification('stand')
                             self.gsm._disconnect_internet()
-                            self.gsm.sleep()
 
                     if type == 'BUT':
-                        self.gsm.reboot()
                         print("send notification to server - Button")
                         self.gsm._connect_internet()
                         self.gsm.send_sms("041992238508", "Alert Button")
                         self.gsm.send_notification('panic')
                         self.gsm._disconnect_internet()
-                        self.gsm.sleep()
 
-            utime.sleep(0.02)
+            utime.sleep(0.2)
