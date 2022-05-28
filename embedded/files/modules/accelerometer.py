@@ -1,4 +1,3 @@
-from re import A
 from files.utils.smbus import SMBus
 import machine
 
@@ -36,7 +35,8 @@ FIFO_MODE = 0x38
 class Accelerometer:
     address = None
     nvalues = 20
-    threshold = 5
+    threshold = 3
+    minacc = 1.5
 
     def __init__(self, i2c_num, scl_pin, sda_pin, log, address=0x53, irq_callback=None):
         self.i2c = machine.I2C(i2c_num,
@@ -57,10 +57,13 @@ class Accelerometer:
         self.xvalues = []
         self.yvalues = []
         self.zvalues = []
+        self.avalues = []
         self.intxvalues = 0
         self.intyvalues = 0
         self.intzvalues = 0
-        self.instep = False
+        self.intavalues = 0
+        self.validationstep = 0
+        self.fcount = 0
 
     def enableStreamMode(self):
         self.bus.write_byte_data(self.address, FIFO_MODE, MODE_STREAM)
@@ -117,10 +120,18 @@ class Accelerometer:
         return {"x": x, "y": y, "z": z}
 
     def stepIteration(self):
+        self.fcount += 1
         axes = self.getAxes()
         x = axes['x']
         y = axes['y']
         z = axes['z']
+
+        if x < self.minacc and x > -self.minacc:
+            x = 0
+        if y < self.minacc and y > -self.minacc:
+            y = 0
+        if z < self.minacc and z > -self.minacc:
+            z = 0
 
         self.xvalues.append(x)
         self.intxvalues += x
@@ -131,21 +142,40 @@ class Accelerometer:
 
         count = len(self.xvalues)
 
-        if len(self.xvalues) > self.nvalues:
+        if count > self.nvalues:
             self.intxvalues -= self.xvalues.pop(0)
             self.intyvalues -= self.yvalues.pop(0)
             self.intzvalues -= self.zvalues.pop(0)
-            
-        gx = self.intxvalues / count
-        gy = self.intyvalues / count
-        gz = self.intzvalues / count
+        else:
+            return
+        
+        if self.fcount % 10 != 0:
+            return
+        
+        gx = self.intxvalues / (count - 1)
+        gy = self.intyvalues / (count - 1)
+        gz = self.intzvalues / (count - 1)
 
         x -= gx
         y -= gy
         z -= gz
+
         a = x * gx + y * gy + z * gz
-        if not self.instep and a > self.threshold:
+        
+        self.avalues.append(a)
+        self.intavalues += a
+
+        count = len(self.avalues)
+        if count > self.nvalues:
+            self.intavalues -= self.avalues.pop(0)
+        
+        if count > 1:
+            a = self.intavalues / (count - 1)
+        else:
+            return
+
+        if self.validationstep is 0 and a > self.threshold:
             self.callback()
-            self.instep = True
-        elif self.instep and a < self.threshold:
-            self.instep = False
+            self.validationstep = 1
+        elif self.validationstep is 1 and a < self.threshold:
+            self.validationstep = 0
