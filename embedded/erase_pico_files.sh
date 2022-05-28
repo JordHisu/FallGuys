@@ -1,2 +1,2 @@
-rshell -p %1 --buffer-size 32 rm -r /pyboard/
+rshell rm -rf /pyboard/
 echo Pico cleaned
