@@ -4,20 +4,14 @@ from files.modules.barometer import Barometer
 from files.modules.lora import LoRa
 from files.modules.accelerometer import Accelerometer
 from files.utils.logger import Logger
+from files.utils.blink_led import toggle_led
 import utime
+import re
 
 
 class Anklet:
     def __init__(self):
         self.log = Logger()
-        # self.bluetooth = Bluetooth(
-        #     name="Anklet",
-        #     uart_num=0,
-        #     tx_pin=12,
-        #     rx_pin=13,
-        #     is_slave=True,
-        #     log=self.log
-        # )
         self.bluetooth = Bluetooth(
             i2c_num=0,
             scl_pin=13,
@@ -47,66 +41,47 @@ class Anklet:
         #     address=0x53
         # )
 
-        self.gps_pooling = 120
-        self.acc_pooling = 60
-        self.bar_pooling = 30
+        self.bar_pooling = 10
+        self.bar_mills = utime.ticks_ms()
 
-        self.gps_mills, self.acc_mills, self.bar_mills = utime.ticks_ms()
+        self.first_time = True
+        self.offset = 0
+
 
     def run(self):
+        self.lora.send('Anklet running\n')
         while True:
-            barometer_data = self.barometer.getBarometerData()
-            bluetooth_received = self.bluetooth.receive()
-            if bluetooth_received:
-                if "CONNECTED" in bluetooth_received:
-                    print("Connected Bluetooth")
-                    self.log.info("Connected Bluetooth")
-                elif "ALERT" in bluetooth_received:
-                    print("BUTTON ALERT: Send to LoRa")
-                    self.log.info("BUTTON ALERT: Send to LoRa")
-                    self.lora.send({'type': 'BUT'})
-                else:
-                    try:
-                        barometer_data = float(barometer_data) - 0.675  # offset to equal the barometers
-                        bluetooth_received = float(bluetooth_received)
-                        bar_data = {
-                            'type': 'BAR',
-                            'necklace': bluetooth_received,
-                            'anklet': barometer_data,
-                            'fall': False
-                        }
-                        if barometer_data - bluetooth_received < 0.4:
-                            bar_data['fall'] = True
-                            self.log.info("FALL DETECTED: Send to LoRa")
-                            self.lora.send(bar_data)
-                        else:
-                            if (utime.ticks_ms() - self.bar_mills) > self.bar_pooling * 1000:
+            try:
+                toggle_led()
+                barometer_data = self.barometer.getBarometerData()
+                bluetooth_received = self.bluetooth.receive()
+                if bluetooth_received:
+                    regx = re.search("(\d+(.\d+)?)", bluetooth_received)
+                    if "ALERT" in bluetooth_received:
+                        self.lora.send({'type': 'BUT'})
+                    if regx:
+                        regx = regx.groups()
+                        if regx:
+                            bluetooth_received = float(regx[0]) - self.offset
+                            barometer_data = float(barometer_data)
+                            if self.first_time:
+                                self.offset =  bluetooth_received - barometer_data
+                                self.first_time = False
+                            bar_data = {
+                                'type': 'BAR',
+                                'necklace': bluetooth_received,
+                                'anklet': barometer_data,
+                                'fall': False
+                            }
+                            if barometer_data - bluetooth_received < 0.4:
+                                bar_data['fall'] = True
+                                self.log.info("FALL DETECTED: Send to LoRa")
                                 self.lora.send(bar_data)
-                                self.bar_mills = utime.ticks_ms()
+                            else:
+                                if utime.ticks_ms() - self.bar_mills > self.bar_pooling * 1000:
+                                    self.lora.send(bar_data)
+                                    self.bar_mills = utime.ticks_ms()
+            except Exception as e:
+                print('Error: ', str(e))
 
-                    except Exception as e:
-                        self.log.error("Converting Bluetooth or Barometer Data " + str(e))
-
-            if (utime.ticks_ms() - self.gps_mills) > self.gps_pooling * 1000:
-                # get data from GPS
-                gps_data = {
-                    'type': 'GPS',
-                    'lat': -25.4395054,
-                    'lon': -49.2685292
-                }
-                self.lora.send(gps_data)
-                self.gps_mills = utime.ticks_ms()
-
-            # get data from Accelerometer
-            if (utime.ticks_ms() - self.acc_mills) > self.acc_pooling * 1000:
-                acc_data = {
-                    'type': 'ACC',
-                    'steps': 35,
-                }
-                self.lora.send(acc_data)
-                self.acc_mills = utime.ticks_ms()
-
-            # lora_rcv = self.lora.receive()
-            # if lora_rcv:
-            #     print('Received message from LoRa: ' + str(lora_rcv))
             utime.sleep(0.5)
