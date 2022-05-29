@@ -37,20 +37,27 @@ class LoRa:
     def receive(self):
         try:
             read = self.uart.readline()
+            result = []
             if read:
                 decoded = read.decode('utf-8')
-                if decoded != "":
-                    self.last_msg = self.last_msg + decoded
+                self.last_msg += decoded
+                if '\n' not in self.last_msg :
+                    return
+                
+                decoded_splited = self.last_msg.split("\n")
+                
+                self.last_msg = decoded_splited[-1]
+                for i in range(len(decoded_splited)-1):
                     self.log.info("Received form LoRa: " + decoded)
-                    print("Received form LoRa: " + str(decoded))
-                    utime.sleep(0.05)
-                    return_json = json.loads(self.last_msg)
-                    self.last_msg = ""
-                    return return_json
+                    # print("Received form LoRa: " + str(decoded))
+                    return_json = json.loads(decoded_splited[i])
+                    result.append(return_json)
+                return result
         except Exception as e:
-            print("Exception receiving from LoRa: " + str(e))
+            # print("Exception receiving from LoRa: " + str(e))
             self.log.error("Exception receiving from LoRa: " + str(e))
-        return None
+        return result
+
 
 
 

@@ -24,49 +24,54 @@ class Base:
             carrier_usr='tim',
             carrier_pwd='tim',
             srv_endpoint='http://fall-guys-integration-workship.herokuapp.com',
-            srv_user='x'
+            srv_user='a'
         )
-        # self.gsm.sleep()
         self.gsm.send_notification('stand')
-        self.gsm._disconnect_internet()
 
     def run(self):
         print("Waiting LoRa...")
         position = "stand"
 
+        previous_lora = utime.ticks_ms()
+        previous_led = utime.ticks_ms()
+
         while True:
-            toggle_led()
-            rcv_msg = self.lora.receive()
-            if rcv_msg and rcv_msg != "":
-                print(rcv_msg)
-                if "type" in rcv_msg.keys():
-                    type = rcv_msg['type']
-                    print(type)
-                # if type == 'GPS':
-                #     self.gsm.send_data(None, [rcv_msg['lat'], rcv_msg['lon']], None)
-                # if type == 'ACC':
-                #     self.gsm.send_data(rcv_msg['steps'], None, None)
-                    if type == 'BAR':
-                        if "fall" in rcv_msg.keys() and rcv_msg['fall'] and position != "fall":
-                            print("send notification to server - Fall")
-                            # self.gsm.reboot()
-                            self.gsm.send_sms("041992238508", "Fall")
-                            self.gsm._connect_internet()
-                            self.gsm.send_notification('fall')
-                            self.gsm._disconnect_internet()
-                            position = "fall"
-                        elif position == "fall":
-                            position = "stand"
-                            print("send notification to server - Stand")
-                            self.gsm._connect_internet()
-                            self.gsm.send_notification('stand')
-                            self.gsm._disconnect_internet()
+            if utime.ticks_ms() - previous_led > 400:
+                toggle_led()
+                previous_led = utime.ticks_ms()
+            if utime.ticks_ms() - previous_lora > 200:
+                rcv_msgs = self.lora.receive()
+                if rcv_msgs and rcv_msgs != "":
+                    for rcv_msg in rcv_msgs:
+                        print(rcv_msg)
+                        try:
+                            if "type" in rcv_msg.keys():
+                                type = rcv_msg["type"]
+                            # if type == 'GPS':
+                            #     self.gsm.send_data(None, [rcv_msg['lat'], rcv_msg['lon']], None)
+                            # if type == 'ACC':
+                            #     self.gsm.send_data(rcv_msg['steps'], None, None)
+                                if type == 'BAR':
+                                    necklace = rcv_msg["necklace"]
+                                    anklet = rcv_msg["anklet"]
+                                    print(necklace, anklet)
+                                    if "fall" in rcv_msg.keys():
+                                        if rcv_msg['fall'] and position != "fall":
+                                            print("send notification to server - Fall")
+                                            self.gsm.send_sms("041991044054", "Fall")
+                                            # self.gsm.send_sms("041992238508", "Fall")
+                                            self.gsm.send_notification('fall')
+                                            position = "fall"
+                                        elif not rcv_msg['fall'] and position == "fall":
+                                            position = "stand"
+                                            print("send notification to server - Stand")
+                                            self.gsm.send_notification('stand')
 
-                    if type == 'BUT':
-                        print("send notification to server - Button")
-                        self.gsm._connect_internet()
-                        self.gsm.send_sms("041992238508", "Alert Button")
-                        self.gsm.send_notification('panic')
-                        self.gsm._disconnect_internet()
-
-            utime.sleep(0.2)
+                                if type == 'BUT':
+                                    print("send notification to server - Button")
+                                    self.gsm.send_sms("041991044054", "Alert Button")
+                                    # self.gsm.send_sms("041992238508", "Alert Button")
+                                    self.gsm.send_notification('panic')
+                        except:
+                            print("Except")
+                previous_lora = utime.ticks_ms()
