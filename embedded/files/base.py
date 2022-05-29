@@ -26,15 +26,13 @@ class Base:
             srv_endpoint='http://fall-guys-integration-workship.herokuapp.com',
             srv_user='a'
         )
+        
         result = self.gsm.get_info()
         print(result)
         try:
             print(result["number"])
         except:
-            18276175541
             pass
-        # self.gsm.send_notification('stand')
-        # save user's telefone
 
     def run(self):
         print("Waiting LoRa...")

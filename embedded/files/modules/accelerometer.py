@@ -1,5 +1,4 @@
 from files.utils.smbus import SMBus
-from time import sleep
 import machine
 
 # ADXL345 constants
@@ -17,20 +16,29 @@ BW_RATE_200HZ = 0x0C
 BW_RATE_100HZ = 0x0B
 BW_RATE_50HZ = 0x0A
 BW_RATE_25HZ = 0x09
+BW_RATE_125HZ = 0x08
 
 RANGE_2G = 0x00
 RANGE_4G = 0x01
 RANGE_8G = 0x02
 RANGE_16G = 0x03
 
+MODE_STREAM = 0x40
+MODE_FIFO = 0x80
+MOD_TRIGGER = 0xC0
+
 MEASURE = 0x08
 AXES_DATA = 0x32
+FIFO_MODE = 0x38
 
 
 class Accelerometer:
     address = None
+    nvalues = 20
+    threshold = 3
+    minacc = 1.5
 
-    def __init__(self, i2c_num, scl_pin, sda_pin, log, address=0x53):
+    def __init__(self, i2c_num, scl_pin, sda_pin, log, address=0x53, irq_callback=None):
         self.i2c = machine.I2C(i2c_num,
                                scl=machine.Pin(scl_pin),
                                sda=machine.Pin(sda_pin),
@@ -39,11 +47,26 @@ class Accelerometer:
         self.bus = SMBus(self.i2c)
 
         self.log = log
-
+        self.callback = irq_callback
         self.address = address
-        self.setBandwidthRate(BW_RATE_100HZ)
+        self.setBandwidthRate(BW_RATE_25HZ)
         self.setRange(RANGE_2G)
         self.enableMeasurement()
+        self.enableStreamMode()
+
+        self.xvalues = []
+        self.yvalues = []
+        self.zvalues = []
+        self.avalues = []
+        self.intxvalues = 0
+        self.intyvalues = 0
+        self.intzvalues = 0
+        self.intavalues = 0
+        self.validationstep = 0
+        self.fcount = 0
+
+    def enableStreamMode(self):
+        self.bus.write_byte_data(self.address, FIFO_MODE, MODE_STREAM)
 
     def enableMeasurement(self):
         self.bus.write_byte_data(self.address, POWER_CTL, MEASURE)
@@ -95,3 +118,64 @@ class Accelerometer:
         z = round(z, 4)
 
         return {"x": x, "y": y, "z": z}
+
+    def stepIteration(self):
+        self.fcount += 1
+        axes = self.getAxes()
+        x = axes['x']
+        y = axes['y']
+        z = axes['z']
+
+        if x < self.minacc and x > -self.minacc:
+            x = 0
+        if y < self.minacc and y > -self.minacc:
+            y = 0
+        if z < self.minacc and z > -self.minacc:
+            z = 0
+
+        self.xvalues.append(x)
+        self.intxvalues += x
+        self.yvalues.append(y)
+        self.intyvalues += y
+        self.zvalues.append(z)
+        self.intzvalues += z
+
+        count = len(self.xvalues)
+
+        if count > self.nvalues:
+            self.intxvalues -= self.xvalues.pop(0)
+            self.intyvalues -= self.yvalues.pop(0)
+            self.intzvalues -= self.zvalues.pop(0)
+        else:
+            return
+        
+        if self.fcount % 10 != 0:
+            return
+        
+        gx = self.intxvalues / (count - 1)
+        gy = self.intyvalues / (count - 1)
+        gz = self.intzvalues / (count - 1)
+
+        x -= gx
+        y -= gy
+        z -= gz
+
+        a = x * gx + y * gy + z * gz
+        
+        self.avalues.append(a)
+        self.intavalues += a
+
+        count = len(self.avalues)
+        if count > self.nvalues:
+            self.intavalues -= self.avalues.pop(0)
+        
+        if count > 1:
+            a = self.intavalues / (count - 1)
+        else:
+            return
+
+        if self.validationstep is 0 and a > self.threshold:
+            self.callback()
+            self.validationstep = 1
+        elif self.validationstep is 1 and a < self.threshold:
+            self.validationstep = 0

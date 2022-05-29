@@ -1,0 +1,1 @@
+python C:\rshell\main.py -p $args[0] --buffer-size 32 rm -r "/pyboard/"
