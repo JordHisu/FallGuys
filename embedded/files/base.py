@@ -20,13 +20,19 @@ class Base:
             rx_pin=17,
             power_pin=22,
             debug=True,
-            carrier='timbrasil.br',
-            carrier_usr='tim',
-            carrier_pwd='tim',
+            carrier='zap.vivo.com.br',
+            carrier_usr='vivo',
+            carrier_pwd='vivo',
             srv_endpoint='http://fall-guys-integration-workship.herokuapp.com',
             srv_user='a'
         )
-        self.gsm.send_notification('stand')
+        
+        result = self.gsm.get_info()
+        print(result)
+        try:
+            print(result["number"])
+        except:
+            pass
 
     def run(self):
         print("Waiting LoRa...")
@@ -54,6 +60,7 @@ class Base:
                                 if type == 'BAR':
                                     necklace = rcv_msg["necklace"]
                                     anklet = rcv_msg["anklet"]
+                                    # verify barometer
                                     print(necklace, anklet)
                                     if "fall" in rcv_msg.keys():
                                         if rcv_msg['fall'] and position != "fall":

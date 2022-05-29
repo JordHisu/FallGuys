@@ -84,6 +84,17 @@ class GSM:
         self._disconnect_internet()
         return config
 
+    def get_info(self):
+        if self.debug:
+            print("[Debug GSM] - get_info")
+        url = f'{self.srv_endpoint}/info/{self.srv_user}'
+        res = self.http_get(url)
+        search_res = re.search("{.*}", res)
+        list_res = json.loads(search_res.group(0))
+        info = {item[0]: item[1] for item in list_res["content"]}
+        self._disconnect_internet()
+        return info
+
     def send_data(self, steps, live_location, pressure):
         if self.debug:
             print("[Debug GSM] - send_data")
