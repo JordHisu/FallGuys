@@ -54,7 +54,6 @@ class GSM:
         self._power_cycle()
         self._configure_modem()
         self._ensure_connected_to_network()
-        self._connect_internet()
 
     def _power_cycle(self):
         if self.debug:
@@ -72,6 +71,7 @@ class GSM:
         url = f'{self.srv_endpoint}/sendnotif/{self.srv_user}'
         body = '{"type": "' + not_type + '"}'
         self.http_post(url, body)
+        self._disconnect_internet()
 
     def get_configuration(self):
         if self.debug:
@@ -81,6 +81,7 @@ class GSM:
         search_res = re.search("{.*}", res)
         list_res = json.loads(search_res.group(0))
         config = {item[0]: item[1] for item in list_res["content"]}
+        self._disconnect_internet()
         return config
 
     def send_data(self, steps, live_location, pressure):
@@ -94,6 +95,7 @@ class GSM:
         body = json.dumps(body_dict)
         url = f'{self.srv_endpoint}/senddata/{self.srv_user}'
         self.http_post(url, body)
+        self._disconnect_internet()
 
     def http_get(self, url, timeout=10000):
         if self.debug:
@@ -172,7 +174,7 @@ class GSM:
                 return
         except Exception as e:
             print(f'GSM - Failed to verify internet connection status: {e}')
-        self.reboot()
+        self._connect_internet()
 
     def _ensure_connected_to_network(self, attempts=1000):
         if self.debug:
