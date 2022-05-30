@@ -8,16 +8,12 @@ BAUDRATE = 115200
 
 
 class GSM:
-    def __init__(self, tx_pin=16, rx_pin=17, power_pin=22, debug=False, carrier='timbrasil.br', carrier_usr='tim',
-                 carrier_pwd='tim', srv_endpoint='http://fall-guys-integration-workship.herokuapp.com', srv_user='c'):
+    def __init__(self, tx_pin=16, rx_pin=17, power_pin=22, debug=False, srv_endpoint='http://fall-guys-integration-workship.herokuapp.com', srv_user='c'):
 
         self.modem = UART(0, BAUDRATE, tx=Pin(tx_pin), rx=Pin(rx_pin))
         self.power = Pin(power_pin, Pin.OUT)
         self.debug = debug
 
-        self.carrier = carrier
-        self.carrier_usr = carrier_usr
-        self.carrier_pwd = carrier_pwd
         self.srv_endpoint = srv_endpoint
         self.srv_user = srv_user
 
@@ -35,9 +31,9 @@ class GSM:
         if self.debug:
             print("[Debug GSM] AT Write - %s\n" % command)
         self.modem.write((command + eol).encode())
-        sleep(0.1)
+        sleep(0.01)
         response = self._read_buffer(timeout_ms)
-        sleep(0.1)
+        sleep(0.01)
         if self.debug:
             print("[Debug GSM] AT Read - %s\n" % response)
         return response
@@ -91,9 +87,8 @@ class GSM:
         res = self.http_get(url)
         search_res = re.search("{.*}", res)
         list_res = json.loads(search_res.group(0))
-        info = {item[0]: item[1] for item in list_res["content"]}
         self._disconnect_internet()
-        return info
+        return list_res
 
     def send_data(self, steps, live_location, pressure):
         if self.debug:
@@ -167,7 +162,6 @@ class GSM:
                 self.exec("ATE1")  # Enable command echo
                 self.exec("AT+CMGF=1")  # Enable 'text' mode for SMS
                 self.exec('AT+SAPBR=3,1,"Contype","GPRS"')  # Enable 'GPRS' mode for internet connection
-                self.exec(f'AT+CSTT="{self.carrier}","{self.carrier_usr}","{self.carrier_pwd}"')  # Enable APN name, user and password
                 return
             except:
                 attempts -= 1
