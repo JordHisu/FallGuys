@@ -20,19 +20,20 @@ class Base:
             rx_pin=17,
             power_pin=22,
             debug=True,
-            carrier='zap.vivo.com.br',
-            carrier_usr='vivo',
-            carrier_pwd='vivo',
             srv_endpoint='http://fall-guys-integration-workship.herokuapp.com',
             srv_user='a'
         )
         
-        result = self.gsm.get_info()
-        print(result)
         try:
-            print(result["number"])
+            result = self.gsm.get_info()
+            self.cel_number = result["number"]
         except:
-            pass
+            self.cel_number = '045999710704'
+            
+        try:    
+            self.gsm.send_notification('stand')
+        except:
+            print('Error sending "stand" notification')
 
     def run(self):
         print("Waiting LoRa...")
@@ -65,7 +66,7 @@ class Base:
                                     if "fall" in rcv_msg.keys():
                                         if rcv_msg['fall'] and position != "fall":
                                             print("send notification to server - Fall")
-                                            self.gsm.send_sms("041991044054", "Fall")
+                                            self.gsm.send_sms(self.cel_number, "Fall")
                                             # self.gsm.send_sms("041992238508", "Fall")
                                             self.gsm.send_notification('fall')
                                             position = "fall"
@@ -76,8 +77,7 @@ class Base:
 
                                 if type == 'BUT':
                                     print("send notification to server - Button")
-                                    self.gsm.send_sms("041991044054", "Alert Button")
-                                    # self.gsm.send_sms("041992238508", "Alert Button")
+                                    self.gsm.send_sms(self.cel_number, "Alert Button")
                                     self.gsm.send_notification('panic')
                         except:
                             print("Except")
