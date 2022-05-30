@@ -1,5 +1,6 @@
 from files.modules.lora import LoRa
 from files.modules.gsm import GSM
+from files.modules.barometer import Barometer
 from files.utils.logger import Logger
 from files.utils.blink_led import toggle_led
 import utime
@@ -23,6 +24,13 @@ class Base:
             srv_endpoint='http://fall-guys-integration-workship.herokuapp.com',
             srv_user='a'
         )
+        self.barometer = Barometer(
+            i2c_num=1,
+            scl_pin=3,
+            sda_pin=2,
+            log=self.log,
+            address=0x77
+        )
         
         try:
             result = self.gsm.get_info()
@@ -34,6 +42,7 @@ class Base:
             self.gsm.send_notification('stand')
         except:
             print('Error sending "stand" notification')
+        
 
     def run(self):
         print("Waiting LoRa...")
@@ -54,20 +63,33 @@ class Base:
                         try:
                             if "type" in rcv_msg.keys():
                                 type = rcv_msg["type"]
-                            # if type == 'GPS':
-                            #     self.gsm.send_data(None, [rcv_msg['lat'], rcv_msg['lon']], None)
-                            # if type == 'ACC':
-                            #     self.gsm.send_data(rcv_msg['steps'], None, None)
+                                if type == 'GPS':
+                                    if 'lat' not in rcv_msg.keys() or 'lon' not in rcv_msg.keys():
+                                        continue
+                                    lat = rcv_msg['lat'] 
+                                    lon = rcv_msg['lon'] 
+                                    if lat == None or lon == None:
+                                        lat = -25.4398898
+                                        lon = -49.2683882
+                                    self.gsm.send_data(None, [lat, lon], None)
+                                if type == 'ACC':
+                                    self.gsm.send_data(rcv_msg['steps'], None, None)
                                 if type == 'BAR':
                                     necklace = rcv_msg["necklace"]
                                     anklet = rcv_msg["anklet"]
-                                    # verify barometer
                                     print(necklace, anklet)
                                     if "fall" in rcv_msg.keys():
                                         if rcv_msg['fall'] and position != "fall":
+                                            base = self.barometer.getBarometerData()
+                                            barometer_media = (necklace+anklet)/2
+                                            if barometer_media - base > 0.4 and barometer_media - base < 1.0:
+                                                if position == "lying":
+                                                    continue
+                                                position = "lying"
+                                                print("send notification to server - Lying")
+                                                self.gsm.send_notification("lying")
                                             print("send notification to server - Fall")
                                             self.gsm.send_sms(self.cel_number, "Fall")
-                                            # self.gsm.send_sms("041992238508", "Fall")
                                             self.gsm.send_notification('fall')
                                             position = "fall"
                                         elif not rcv_msg['fall'] and position == "fall":
