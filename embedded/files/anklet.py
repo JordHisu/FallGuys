@@ -100,4 +100,4 @@ class Anklet:
             except Exception as e:
                 print('Error: ', str(e))
 
-            utime.sleep(0.4)
+            utime.sleep(0.3)
