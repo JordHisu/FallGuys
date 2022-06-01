@@ -149,6 +149,7 @@ class GSM:
                 res = self.exec('AT+HTTPACTION=1', timeout_ms=timeout)
                 if '200' not in res:
                     raise Exception(f"GSM - Unknown http post response code: {res}")
+                return
             except:
                 attempts -= 1
                 self.reboot()
