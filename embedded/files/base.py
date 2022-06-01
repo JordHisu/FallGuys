@@ -82,27 +82,27 @@ class Base:
                                     anklet = rcv_msg["anklet"]
                                     print(necklace, anklet)
                                     if "fall" in rcv_msg.keys():
-                                        if rcv_msg['fall'] and position != "fall":
+                                        if rcv_msg['fall']:
                                             base = self.barometer.getBarometerData()
                                             barometer_media = (necklace+anklet)/2
-                                            if barometer_media - base > 0.4 and barometer_media - base < 1.0:
+                                            if base - barometer_media > 0.4 and base - barometer_media < 1.0:
                                                 if position == "lying":
                                                     continue
                                                 position = "lying"
                                                 print("send notification to server - Lying")
                                                 self.gsm.send_notification("lying")
-                                            print("send notification to server - Fall")
-                                            self.gsm.send_sms(self.cel_number, "Fall")
-                                            self.gsm.send_notification('fall')
-                                            position = "fall"
-                                        elif not rcv_msg['fall'] and position == "fall":
+                                            else:
+                                                print("send notification to server - Fall")
+                                                self.gsm.send_sms(self.cel_number, "Fall detected!!")
+                                                self.gsm.send_notification('fall')
+                                                position = "fall"
+                                        elif position == "fall" or position == "lying":
                                             position = "stand"
                                             print("send notification to server - Stand")
                                             self.gsm.send_notification('stand')
-
                                 if type == 'BUT':
                                     print("send notification to server - Button")
-                                    self.gsm.send_sms(self.cel_number, "Alert Button")
+                                    self.gsm.send_sms(self.cel_number, "Panic button pressed!!")
                                     self.gsm.send_notification('panic')
                         except:
                             print("Except")
