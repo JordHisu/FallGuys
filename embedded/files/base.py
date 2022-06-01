@@ -33,7 +33,7 @@ class Base:
         )
         
         try:
-            result = self.gsm.get_info()
+            result = self.gsm.get_info(disconnect=False)
             self.cel_number = result["number"]
         except:
             self.cel_number = '045999710704'
