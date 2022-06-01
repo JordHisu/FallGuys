@@ -1,23 +1,15 @@
 import json
-import os
-from glob import glob
 from json import JSONDecodeError
 
 import kivy.utils
 import requests
+from kivy.app import App
+from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang.builder import Builder
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.screenmanager import ScreenManager
-
-
-from kivy.uix.relativelayout import RelativeLayout
-from datetime import datetime, timedelta
-from kivy.properties import NumericProperty
-from kivy.properties import StringProperty
-from kivy.app import App
-from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
+from kivy.uix.screenmanager import ScreenManager
 
 
 class FallGuysApp(App):
@@ -98,8 +90,7 @@ class MainScreen(Screen):
         splitted_string = string.split(' ')
         for i, substring in enumerate(splitted_string):
             try:
-                if (float(substring) and '.' in substring) or substring.isdigit():
-                    splitted_string[i] = float(substring)
+                splitted_string[i] = float(substring)
             except ValueError:
                 return None
         try:
