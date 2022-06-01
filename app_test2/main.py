@@ -63,7 +63,7 @@ class MainScreen(Screen):
         request_body = self._build_json_body_for_send_data_request()
         self.set_terminal_request(request_body)
         response = requests.request(method='post', url=url,
-                                    json=json.dumps(request_body),
+                                    data=json.dumps(request_body),
                                     headers={'content-type': 'application/json'})
         self.set_terminal_response(response.text)
 
@@ -113,8 +113,8 @@ class MainScreen(Screen):
         url = f"http://fall-guys-integration-workship.herokuapp.com/sendnotif/{self.get_device_id()}"
         request_body = {"type": notification_type}
         self.set_terminal_request(request_body)
-        response = requests.request(method='post', url=url,
-                                    json=json.dumps(request_body),
+        response = requests.post(url=url,
+                                    data=json.dumps(request_body),
                                     headers={'content-type': 'application/json'})
         self.set_terminal_response(response.text)
 
