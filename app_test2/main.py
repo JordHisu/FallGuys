@@ -1,7 +1,10 @@
+import json
 import os
 from glob import glob
+from json import JSONDecodeError
 
 import kivy.utils
+import requests
 from kivy.core.window import Window
 from kivy.lang.builder import Builder
 from kivy.uix.floatlayout import FloatLayout
@@ -17,26 +20,15 @@ from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
 
 
-class NotificationHandler:
-    def get_notifications_from_server(self):
-        return [
-            {
-                'type': 'X',
-                'time': '23:59'
-            }
-        ]
-
-
 class FallGuysApp(App):
     MAIN_LAYOUT_FILE = 'layout.kv'
-    notification_handler = NotificationHandler()
 
     def build(self):
         root = self.load_kv_files()
         return root
 
     def load_kv_files(self):
-        return Builder.load_string(KV)
+        return Builder.load_file('layout.kv')
 
 
 class TopOfEverything(FloatLayout):
@@ -65,113 +57,82 @@ class MyScreenManager(ScreenManager):
         self.current = screen_name
 
 
-class Notification(RelativeLayout):
-    creation_date = NumericProperty()
-    expire_date = NumericProperty()
-    readable_creation_date = StringProperty()
-    NOTIFICATION_EXPIRATION_TIME = 1  # in days
+class MainScreen(Screen):
+    def make_send_data_request(self):
+        url = f"http://fall-guys-integration-workship.herokuapp.com/senddata/{self.get_device_id()}"
+        request_body = self._build_json_body_for_send_data_request()
+        self.set_terminal_request(request_body)
+        response = requests.request(method='post', url=url,
+                                    json=json.dumps(request_body),
+                                    headers={'content-type': 'application/json'})
+        self.set_terminal_response(response.text)
 
-    def __init__(self, notification_info=None, **kwargs):
-        super().__init__(**kwargs)
-        creation_date = datetime.now()
-        self.creation_date = creation_date.timestamp()
-        expire_date = creation_date + timedelta(days=self.NOTIFICATION_EXPIRATION_TIME)
-        self.expire_date = expire_date.timestamp()
-        self.readable_creation_date = self.get_readable_creation_date()
+    def _build_json_body_for_send_data_request(self):
+        inputs = self.ids.request_options.send_data_request_inputs
+        request_body = {}
+        for key, (request_input, should_include) in inputs.items():
+            if not should_include:
+                continue
+            try:
+                json.loads(request_input)  # If json is valid
+                try:
+                    eval_input = eval(request_input)
+                    if isinstance(eval_input, (list, tuple)):  # If is a list or a tuple
+                        for i, item in enumerate(eval_input):
+                            eval_input[i] = float(item)
+                        request_input = list(eval_input)
+                    else:  # If not a list or a tuple, must be a single value
+                        request_input = [float(request_input)]
+                    request_body[key] = request_input
+                except SyntaxError:
+                    continue
 
-    def get_readable_creation_date(self):
-        return datetime.fromtimestamp(self.creation_date).strftime("%d-%m-%Y %H:%M:%S")
+            except JSONDecodeError:  # If json not valid, try to create from spaced string
+                spaced_string_json = self._create_json_from_spaced_string(request_input)
+                if spaced_string_json is not None:
+                    request_body[key] = eval(spaced_string_json)
 
-    def is_expired(self):
-        return datetime.now().timestamp() > self.expire_date
+        return request_body
 
+    def _create_json_from_spaced_string(self, string):
+        splitted_string = string.split(' ')
+        for i, substring in enumerate(splitted_string):
+            try:
+                if (float(substring) and '.' in substring) or substring.isdigit():
+                    splitted_string[i] = float(substring)
+            except ValueError:
+                return None
+        try:
+            json_from_spaced_string = json.dumps(splitted_string)
+        except ValueError:
+            json_from_spaced_string = None
 
-class NotificationScreen(Screen):
-    FETCH_NOTIFICATION_PERIOD = 3  # in seconds
+        return json_from_spaced_string
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_interval(callback=self.update_notification_grid, timeout=self.FETCH_NOTIFICATION_PERIOD)
+    def make_send_notification_request(self, notification_type):
+        url = f"http://fall-guys-integration-workship.herokuapp.com/sendnotif/{self.get_device_id()}"
+        request_body = {"type": notification_type}
+        self.set_terminal_request(request_body)
+        response = requests.request(method='post', url=url,
+                                    json=json.dumps(request_body),
+                                    headers={'content-type': 'application/json'})
+        self.set_terminal_response(response.text)
 
-    def update_notification_grid(self, dt=None):
-        new_notifications = self.fetch_notifications()
-        grid = self.ids.notification_grid
-        for notification_info in new_notifications:
-            notification = Notification(notification_info)
-            grid.add_widget(notification)
-        self.clear_old_notifications()
+    def set_terminal_request(self, text):
+        text = json.dumps(text, indent=4)
+        self.ids.terminal.ids.request_label.text = str(text)
 
-    def fetch_notifications(self):
-        handler = App.get_running_app().notification_handler
-        return handler.get_notifications_from_server()
+    def set_terminal_response(self, text):
+        try:
+            json.loads(text)
+            text = json.dumps(text, indent=1)
+        except ValueError:
+            pass
 
-    def clear_old_notifications(self):
-        grid = self.ids.notification_grid
-        for notification in grid.children:
-            if notification.is_expired():
-                grid.remove_widget(notification)
+        self.ids.terminal.ids.response_label.text = text
 
-
-
-
-KV = """
-TopOfEverything:
-    MyScreenManager:
-        NotificationScreen:
-        
-<Notification>:
-    canvas:
-        Color:
-            rgba: .5, .5, .5, 1
-        Line:
-            rectangle: (0, 0, self.width, self.height)
-    size_hint_y: None
-    height: dp(80)
-    Label:
-        pos_hint: {'x': .02, 'top': .95}
-        size_hint: None, None
-        size: self.texture_size
-        font_size: dp(12)
-        text: root.readable_creation_date
-        color: .5, .5, .5, 1
-    Label:
-        pos_hint: {'center_x': .5, 'center_y': .5}
-        size_hint: None, None
-        size: self.texture_size
-        font_size: dp(17)
-        text: "O usuário caiu!"
-        
-<NotificationScreen>:
-    name: "NotificationScreen"
-    BoxLayout:
-        orientation: 'vertical'
-        Label:
-            text: "Notifications"
-            font_size: dp(30)
-            size_hint_y: None
-            height: dp(self.texture_size[1] + 30)
-        ScrollView:
-            canvas:
-                Color:
-                    rgba: .8, .2, .2, 1
-                Line:
-                    rectangle: (self.x, self.y, self.width, self.height)
-            GridLayout:
-                id: notification_grid
-                cols: 1
-                height: self.minimum_height
-                size_hint_y: None
-                orientation: 'lr-bt'
-                canvas:
-                    Color:
-                        rgba: .5, .8, .2, .2
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-        BoxLayout:
-            size_hint_y: None
-            height: root.height * .09
-"""
+    def get_device_id(self):
+        return self.ids.request_options.ids.device_id_input.text
 
 
 if __name__ == '__main__':

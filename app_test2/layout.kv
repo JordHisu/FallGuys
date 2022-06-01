@@ -1,0 +1,146 @@
+TopOfEverything:
+    MyScreenManager:
+        id: screen_manager
+        MainScreen:
+            name: "MainScreen"
+
+
+<MainScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        RequestOptions:
+            id: request_options
+        Terminal:
+            id: terminal
+            size_hint_y: None
+            height: self.parent.height * .4
+
+<RequestOptions@ScrollView>:
+    send_data_request_inputs: {'steps': (step_input.text_input, step_input.should_include), 'livelocation': (location_input.text_input, location_input.should_include), 'pressure': (pressure_input.text_input, pressure_input.should_include)}
+    GridLayout:
+        cols: 1
+        height: self.minimum_height
+        size_hint_y: None
+        spacing: dp(15)
+        padding: dp(15), dp(15)
+        Title:
+            text: 'Send data'
+        CustomTextInput:
+            id: step_input
+            text: 'Steps'
+        CustomTextInput:
+            id: location_input
+            text: 'Live Location'
+        CustomTextInput:
+            id: pressure_input
+            text: 'Pressure'
+        SendButton:
+            text: 'Make request'
+            on_release: app.root.screen_manager.get_screen('MainScreen').make_send_data_request()
+            disabled: len(device_id_input.text) <= 0
+
+        Title:
+            text: 'Send notification'
+        SendButton:
+            text: 'Panic'
+            disabled: len(device_id_input.text) <= 0
+            on_release: app.root.screen_manager.get_screen('MainScreen').make_send_notification_request('panic')
+        SendButton:
+            text: 'Fall'
+            disabled: len(device_id_input.text) <= 0
+            on_release: app.root.screen_manager.get_screen('MainScreen').make_send_notification_request('fall')
+        SendButton:
+            text: 'Stand'
+            disabled: len(device_id_input.text) <= 0
+            on_release: app.root.screen_manager.get_screen('MainScreen').make_send_notification_request('stand')
+        SendButton:
+            text: 'Lying'
+            disabled: len(device_id_input.text) <= 0
+            on_release: app.root.screen_manager.get_screen('MainScreen').make_send_notification_request('lying')
+
+        Title:
+            text: 'Device ID'
+        DeviceIDTextInput:
+            id: device_id_input
+
+
+
+<GridRow@Widget>:
+    size_hint_y: None
+    height: dp(40)
+
+<Title@GridRow+Label>:
+    font_size: dp(20)
+    text: root.text
+
+<CustomTextInput@GridRow+BoxLayout>:
+    text: ''
+    text_input: input.text
+    spacing: 10
+    should_include: checkbox.active
+    CheckBox:
+        id: checkbox
+        size_hint_x: None
+        width: dp(20)
+    Label:
+        size_hint_x: None
+        width: dp(80) if len(self.text) > 0 else dp(0)
+        text: root.text
+        halign: 'left'
+        valign: 'middle'
+        text_size: self.size
+    TextInput:
+        id: input
+
+
+<SendButton@GridRow+Button>:
+
+<DeviceIDTextInput@GridRow+TextInput>:
+
+<Terminal@ScrollView>:
+    canvas.before:
+        Color:
+            rgba: .1, .1, .1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: .7, .7, .7, 1
+        Line:
+            points: [self.x, self.height, self.right, self.height]
+            width: dp(1.5)
+    GridLayout:
+        cols: 1
+        size_hint_y: None
+        height: self.minimum_height
+        spacing: dp(10)
+        padding: dp(10)
+        Label:
+            text: "Request"
+            font_size: dp(18)
+            size_hint_y: None
+            height: self.texture_size[1]
+        Label:
+            id: request_label
+            height: self.texture_size[1]
+            size_hint_y: None
+            multiline: True
+            text_size: root.width, None
+            text: ''
+        Label:
+            text: "Response"
+            font_size: dp(18)
+            size_hint_y: None
+            height: self.texture_size[1]
+        Label:
+            id: response_label
+            height: self.texture_size[1]
+            size_hint_y: None
+            multiline: True
+            text_size: root.width, None
+            text: ''
+
+
+
+
+
