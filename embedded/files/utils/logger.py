@@ -5,9 +5,11 @@ class Logger:
         with open("log.txt", "a") as file:
             file.write("\n\nSTART APPLICATION - " + str(time.localtime()) + "\n")
     def info(self, message):
-        with open("log.txt", "a") as file:
-            file.write("INFO: " + str(message) + " - " + str(time.localtime()) + "\n")
+        pass
+        # with open("log.txt", "a") as file:
+        #     file.write("INFO: " + str(message) + " - " + str(time.localtime()) + "\n")
 
     def error(self, message):
-        with open("log.txt", "a") as file:
-            file.write("ERROR: " + str(message) + " - " + str(time.localtime()) + "\n")
+        pass
+        # with open("log.txt", "a") as file:
+        #     file.write("ERROR: " + str(message) + " - " + str(time.localtime()) + "\n")
