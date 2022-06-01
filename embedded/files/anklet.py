@@ -40,10 +40,10 @@ class Anklet:
             enable_pin=26
         )
 
-        self.bar_pooling = 10
+        self.bar_pooling = 30
         self.bar_mills = utime.ticks_ms()
         
-        self.gps_pooling = 60
+        self.gps_pooling = 300
         self.gps_mills = utime.ticks_ms()
 
         self.first_time = True
