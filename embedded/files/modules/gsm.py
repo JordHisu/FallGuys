@@ -118,7 +118,7 @@ class GSM:
             if disconnect:
                 self._disconnect_internet()
 
-    def http_get(self, url, timeout=10000, attempts=3):
+    def http_get(self, url, timeout=7000, attempts=3):
         while attempts > 0:
             try:
                 if self.debug:
@@ -131,10 +131,11 @@ class GSM:
                 result = self.exec('AT+HTTPREAD', timeout_ms=5000)
                 return result
             except:
+                print('http_get failed. Trying again...')
                 attempts -= 1
                 self.reboot()
 
-    def http_post(self, url, body, timeout=10000, attempts=3):
+    def http_post(self, url, body, timeout=7000, attempts=3):
          while attempts > 0:
             try:
                 if self.debug:
@@ -151,6 +152,7 @@ class GSM:
                     raise Exception(f"GSM - Unknown http post response code: {res}")
                 return
             except:
+                print('http_post failed. Trying again...')
                 attempts -= 1
                 self.reboot()
 
