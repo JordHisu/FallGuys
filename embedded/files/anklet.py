@@ -87,11 +87,11 @@ class Anklet:
             
                 if utime.ticks_ms() - self.gps_mills > self.gps_pooling * 1000:
                     print('GETTING GPS INFO')
-                    # lat, lon = self.gps.get_lat_lon()
+                    lat, lon = self.gps.get_lat_lon()
                     gps_data = {
                         "type": "GPS",
-                        "lat": None,
-                        "lon": None
+                        "lat": lat,
+                        "lon": lon
                     }
                     # print(gps_data)
                     self.lora.send(gps_data)
@@ -100,4 +100,4 @@ class Anklet:
             except Exception as e:
                 print('Error: ', str(e))
 
-            utime.sleep(0.5)
+            utime.sleep(0.4)
