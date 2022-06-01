@@ -24,26 +24,29 @@ class GPS:
     
     def get_lat_lon(self):
         
-        timeout = time.time() + 8 
-        
-        while True:
-            self.uart.readline()
-            buff = str(self.uart.readline())
-            parts = buff.split(',')
-        
-            if (parts[0] == "b'$GPGGA" and len(parts) == 15):
-                if(parts[1] and parts[2] and parts[3] and parts[4] and parts[5] and parts[6] and parts[7]):
-                    
-                    self.latitude = self.convert_to_degree(parts[2])
-                    if (parts[3] == 'S'):
-                        self.latitude = -self.latitude
-                    self.longitude = self.convert_to_degree(parts[4])
-                    if (parts[5] == 'W'):
-                        self.longitude = -self.longitude
+        try:
+            timeout = time.time() + 8 
+            
+            while True:
+                self.uart.readline()
+                buff = str(self.uart.readline())
+                parts = buff.split(',')
+            
+                if (parts[0] == "b'$GPGGA" and len(parts) == 15):
+                    if(parts[1] and parts[2] and parts[3] and parts[4] and parts[5] and parts[6] and parts[7]):
+                        
+                        self.latitude = self.convert_to_degree(parts[2])
+                        if (parts[3] == 'S'):
+                            self.latitude = -self.latitude
+                        self.longitude = self.convert_to_degree(parts[4])
+                        if (parts[5] == 'W'):
+                            self.longitude = -self.longitude
+                        break
+                        
+                if (time.time() > timeout):
                     break
-                    
-            if (time.time() > timeout):
-                break
-            utime.sleep_ms(500)
+                utime.sleep_ms(500)
+        except Exception as e:
+            print('Error getting GPS lat and lon ' + str(e))
             
         return self.latitude, self.longitude
