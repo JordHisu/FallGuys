@@ -114,8 +114,8 @@ class MainScreen(Screen):
         request_body = {"type": notification_type}
         self.set_terminal_request(request_body)
         response = requests.post(url=url,
-                                    data=json.dumps(request_body),
-                                    headers={'content-type': 'application/json'})
+                                 data=json.dumps(request_body),
+                                 headers={'content-type': 'application/json'})
         self.set_terminal_response(response.text)
 
     def set_terminal_request(self, text):
@@ -124,12 +124,12 @@ class MainScreen(Screen):
 
     def set_terminal_response(self, text):
         try:
-            json.loads(text)
-            text = json.dumps(text, indent=1)
+            text = json.loads(text)
+            text = json.dumps(text, indent=4)
         except ValueError:
             pass
 
-        self.ids.terminal.ids.response_label.text = text
+        self.ids.terminal.ids.response_label.text = str(text)
 
     def get_device_id(self):
         return self.ids.request_options.ids.device_id_input.text
