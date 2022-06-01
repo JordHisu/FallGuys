@@ -62,50 +62,61 @@ class GSM:
         self.power.value(0)
 
     def send_notification(self, not_type, disconnect=True):  # fall, stand, lying, panic
-        if self.debug:
-            print("[Debug GSM] - send_notification")
-        url = f'{self.srv_endpoint}/sendnotif/{self.srv_user}'
-        body = '{"type": "' + not_type + '"}'
-        self.http_post(url, body)
-        if disconnect:
-            self._disconnect_internet()
+        try:
+            if self.debug:
+                print("[Debug GSM] - send_notification")
+            url = f'{self.srv_endpoint}/sendnotif/{self.srv_user}'
+            body = '{"type": "' + not_type + '"}'
+            self.http_post(url, body)
+        finally:
+            if disconnect:
+                self._disconnect_internet()
+        
 
     def get_configuration(self, disconnect=True):
-        if self.debug:
-            print("[Debug GSM] - get_configuration")
-        url = f'{self.srv_endpoint}/getconfig/{self.srv_user}'
-        res = self.http_get(url)
-        search_res = re.search("{.*}", res)
-        list_res = json.loads(search_res.group(0))
-        config = {item[0]: item[1] for item in list_res["content"]}
-        if disconnect:
-            self._disconnect_internet()
+        config = None
+        try:    
+            if self.debug:
+                print("[Debug GSM] - get_configuration")
+            url = f'{self.srv_endpoint}/getconfig/{self.srv_user}'
+            res = self.http_get(url)
+            search_res = re.search("{.*}", res)
+            list_res = json.loads(search_res.group(0))
+            config = {item[0]: item[1] for item in list_res["content"]}
+        finally:
+            if disconnect:
+                self._disconnect_internet()
         return config
 
     def get_info(self, disconnect=True):
-        if self.debug:
-            print("[Debug GSM] - get_info")
-        url = f'{self.srv_endpoint}/info/{self.srv_user}'
-        res = self.http_get(url)
-        search_res = re.search("{.*}", res)
-        list_res = json.loads(search_res.group(0))
-        if disconnect:
-            self._disconnect_internet()
+        list_res = None
+        try:
+            if self.debug:
+                print("[Debug GSM] - get_info")
+            url = f'{self.srv_endpoint}/info/{self.srv_user}'
+            res = self.http_get(url)
+            search_res = re.search("{.*}", res)
+            list_res = json.loads(search_res.group(0))
+        finally:
+            if disconnect:
+                self._disconnect_internet()
         return list_res
 
     def send_data(self, steps, live_location, pressure, disconnect=True):
-        if self.debug:
-            print("[Debug GSM] - send_data")
-        body_dict = {
-            "steps": steps,
-            "livelocation": live_location,
-            "pressure": pressure
-        }
-        body = json.dumps(body_dict)
-        url = f'{self.srv_endpoint}/senddata/{self.srv_user}'
-        self.http_post(url, body)
-        if disconnect:
-            self._disconnect_internet()
+        try:
+            if self.debug:
+                print("[Debug GSM] - send_data")
+            body_dict = {
+                "steps": steps,
+                "livelocation": live_location,
+                "pressure": pressure
+            }
+            body = json.dumps(body_dict)
+            url = f'{self.srv_endpoint}/senddata/{self.srv_user}'
+            self.http_post(url, body)
+        finally:
+            if disconnect:
+                self._disconnect_internet()
 
     def http_get(self, url, timeout=10000, attempts=3):
         while attempts > 0:
