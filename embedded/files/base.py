@@ -52,6 +52,9 @@ class Base:
                     for rcv_msg in rcv_msgs:
                         print(rcv_msg)
                         try:
+                            if rcv_msg == 'Anklet is running':
+                                self.gsm.send_sms(self.cel_number, "Anklet connected")
+                                continue
                             if "type" in rcv_msg.keys():
                                 type = rcv_msg["type"]
                             # if type == 'GPS':
