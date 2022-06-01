@@ -42,7 +42,9 @@ class Base:
             self.gsm.send_notification('stand')
         except:
             print('Error sending "stand" notification')
-        
+            
+        self.first_time = True
+        self.offset = 0
 
     def run(self):
         print("Waiting LoRa...")
@@ -83,8 +85,12 @@ class Base:
                                     print(necklace, anklet)
                                     if "fall" in rcv_msg.keys():
                                         if rcv_msg['fall']:
-                                            base = self.barometer.getBarometerData()
+                                            base = self.barometer.getBarometerData() - self.offset
                                             barometer_media = (necklace+anklet)/2
+                                            if self.first_time:
+                                                self.offset =  base - barometer_media
+                                                self.first_time = False
+                                                self.gsm.send_sms(self.cel_number, "Devices calibrated! Everything ready to go")
                                             if base - barometer_media > 0.4 and base - barometer_media < 1.0:
                                                 if position == "lying":
                                                     continue
