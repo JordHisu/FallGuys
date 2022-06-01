@@ -20,7 +20,7 @@ class Base:
             tx_pin=16,
             rx_pin=17,
             power_pin=22,
-            debug=True,
+            debug=False,
             srv_endpoint='http://fall-guys-integration-workship.herokuapp.com',
             srv_user='a'
         )
@@ -33,12 +33,15 @@ class Base:
         )
         
         try:
+            print('INIT - Get info (number)')
             result = self.gsm.get_info(disconnect=False)
             self.cel_number = result["number"]
         except:
+            print('Error getting phone number')
             self.cel_number = '045999710704'
             
         try:    
+            print('INIT - Sending stand notification')
             self.gsm.send_notification('stand')
         except:
             print('Error sending "stand" notification')
@@ -54,16 +57,16 @@ class Base:
         previous_led = utime.ticks_ms()
 
         while True:
-            if utime.ticks_ms() - previous_led > 400:
+            if utime.ticks_ms() - previous_led > 500:
                 toggle_led()
                 previous_led = utime.ticks_ms()
-            if utime.ticks_ms() - previous_lora > 200:
+            if utime.ticks_ms() - previous_lora > 400:
                 rcv_msgs = self.lora.receive()
                 if rcv_msgs and rcv_msgs != "":
                     for rcv_msg in rcv_msgs:
-                        print(rcv_msg)
                         try:
                             if rcv_msg == 'Anklet is running':
+                                print("Anklet is running")
                                 self.gsm.send_sms(self.cel_number, "Anklet connected")
                                 continue
                             if "type" in rcv_msg.keys():
@@ -76,13 +79,14 @@ class Base:
                                     if lat == None or lon == None:
                                         lat = -25.4398898
                                         lon = -49.2683882
+                                    print("send notification to server - GPS")
                                     self.gsm.send_data(None, [lat, lon], None)
-                                if type == 'ACC':
+                                elif type == 'ACC':
+                                    print("send notification to server - Accelerometer")
                                     self.gsm.send_data(rcv_msg['steps'], None, None)
-                                if type == 'BAR':
+                                elif type == 'BAR':
                                     necklace = rcv_msg["necklace"]
                                     anklet = rcv_msg["anklet"]
-                                    print(necklace, anklet)
                                     if "fall" in rcv_msg.keys():
                                         if rcv_msg['fall']:
                                             base = self.barometer.getBarometerData() - self.offset
@@ -90,6 +94,7 @@ class Base:
                                             if self.first_time:
                                                 self.offset =  base - barometer_media
                                                 self.first_time = False
+                                                print("Devices calibrated! Everything ready to go")
                                                 self.gsm.send_sms(self.cel_number, "Devices calibrated! Everything ready to go")
                                             if base - barometer_media > 0.4 and base - barometer_media < 1.0:
                                                 if position == "lying":
@@ -106,10 +111,12 @@ class Base:
                                             position = "stand"
                                             print("send notification to server - Stand")
                                             self.gsm.send_notification('stand')
-                                if type == 'BUT':
+                                elif type == 'BUT':
                                     print("send notification to server - Button")
                                     self.gsm.send_sms(self.cel_number, "Panic button pressed!!")
                                     self.gsm.send_notification('panic')
-                        except:
-                            print("Except")
+                                else:
+                                    print('Invalid LoRa message type: ' + str(type))
+                        except Exception as e:
+                            print("Exception: " + str(e))
                 previous_lora = utime.ticks_ms()
