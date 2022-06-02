@@ -126,19 +126,14 @@ class Barometer:
 
     def convert2M(self, pressure):
         return pressure * 0.0295301 * 254
-
-    def getBarometerData(self):
-        sum_temp = 0
+    
+    def getAltitude(self):
         sum_press = 0
         times = 10
         for x in range(times):
             self.read()
-            sum_temp += self.getTempC()
-            sum_press += self.getPressureAdj()
+            sum_press += self.getPressure()
             time.sleep(0.02)
-        # print("Values from sensor")
-        values_barometer = str(sum_temp / times) + "C   " + str(self.convert2M(sum_press) / times) + 'm'
-        # print(values_barometer)
-        self.log.info("Values from Barometer: " + values_barometer)
-        return self.convert2M(sum_press) / times
+        avg_value = sum_press/times
+        return 44330*(1-(avg_value/1013.25)**(1/5.255))
 
