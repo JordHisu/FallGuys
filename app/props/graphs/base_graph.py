@@ -16,7 +16,12 @@ class BaseGraph(RelativeLayout):
             padding=5
         )
 
-    def adjust(self, max_value):
-        self.graph.ymax = max(max_value + 1, 10)
-        self.graph.y_ticks_major = floor(self.graph.ymax / 4)
+    def adjust(self, min_value, max_value, should_round=False):
+        self.graph.ymax = max_value + 1
+        self.graph.ymin = min_value - 1
+        if self.graph.ymin <= 0:
+            self.graph.ymin = 0
+        self.graph.y_ticks_major = float(f"{(self.graph.ymax - self.graph.ymin - .01) / 4:.2f}")
+        if should_round:
+            self.graph.y_ticks_major = floor(self.graph.y_ticks_major)
 
