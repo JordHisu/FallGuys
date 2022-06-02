@@ -22,4 +22,4 @@ class StepGraph(BaseGraph):
         # Shifts everything to the left and adds the new value at the end
         self.plot.points = [(x - 1, y) for x, y in self.plot.points[1:]] + [(self.number_of_bars, value)]
         max_value = max([y for x, y in self.plot.points])
-        self.adjust(max_value)
+        self.adjust(0, max_value, should_round=True)

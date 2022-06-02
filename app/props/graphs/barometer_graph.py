@@ -24,6 +24,8 @@ class BarometerGraph(BaseGraph):
         self.graph.add_plot(self.plots['necklace'])
         self.add_widget(self.graph)
         self.graph.xlabel = "Barometer data per measurement"
+        self.y_ticks_minor = .01
+        self.y_ticks_major = .1
 
     def add_value(self, source, value):
         plot = self.plots[source]
@@ -31,7 +33,8 @@ class BarometerGraph(BaseGraph):
         points = plot.points if len(plot.points) <= self.number_of_points else plot.points[1:]
         # Shifts everything to the left and adds the new value at the end
         plot.points = [(x - 1, y) for x, y in points] + [(self.number_of_points, value)]
+        min_value = min([y for plot in self.plots.values() for x, y in plot.points])
         max_value = max([y for plot in self.plots.values() for x, y in plot.points])
-        self.adjust(max_value)
+        self.adjust(min_value, max_value)
 
 
