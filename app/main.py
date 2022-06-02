@@ -42,6 +42,8 @@ class FallGuysApp(App):
             config_json = json.load(config_file)
         for section, content in config_json.items():
             config.setdefaults(section, content)
+            if 'server_request_period' in content:
+                self.handle_server_request_period_config_change(value=content['server_request_period'])
 
     def save_configs(self, configs):
         self.config.setall('configuration', configs)
