@@ -56,7 +56,7 @@ class Anklet:
         while True:
             try:
                 toggle_led()
-                barometer_data = self.barometer.getBarometerData()
+                barometer_data = self.barometer.getAltitude()
                 bluetooth_received = self.bluetooth.receive()
                 if bluetooth_received:
                     regx = re.search("(\d+(.\d+)?)", bluetooth_received)
@@ -76,7 +76,7 @@ class Anklet:
                                 'anklet': barometer_data,
                                 'fall': False
                             }
-                            if barometer_data - bluetooth_received < 0.4:
+                            if bluetooth_received - barometer_data < 0.4:
                                 bar_data['fall'] = True
                                 self.log.info("FALL DETECTED: Send to LoRa")
                                 self.lora.send(bar_data)

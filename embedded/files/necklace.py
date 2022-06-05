@@ -29,7 +29,7 @@ class Necklace:
         self.barometer_data = None
 
     def get_data_barometer(self, *args):
-        data = self.barometer.getBarometerData()
+        data = self.barometer.getAltitude()
         print("Barometer data: " + str(data))
         self.barometer_data = data
 

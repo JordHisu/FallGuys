@@ -39,12 +39,15 @@ class GSM:
         return response
 
     def send_sms(self, number, message, timeout_ms=5000):
-        if self.debug:
-            print("[Debug GSM] - send_sms")
-        response = self.query('AT+CMGS="%s"' % number, eol="\n")
-        if ">" not in response:
-            raise Exception("Unknown response: %s" % response)
-        self.exec(message, timeout_ms, eol="\x1A")
+        try:
+            if self.debug:
+                print("[Debug GSM] - send_sms")
+            response = self.query('AT+CMGS="%s"' % number, eol="\n")
+            if ">" not in response:
+                raise Exception("Unknown response: %s" % response)
+            self.exec(message, timeout_ms, eol="\x1A")
+        except Exception as e:
+            print('Error sending SMS')
 
     def reboot(self):
         self._power_cycle()
@@ -67,6 +70,7 @@ class GSM:
                 print("[Debug GSM] - send_notification")
             url = f'{self.srv_endpoint}/sendnotif/{self.srv_user}'
             body = '{"type": "' + not_type + '"}'
+            print('send_notification: ' + str(body))
             self.http_post(url, body)
         finally:
             if disconnect:
@@ -113,12 +117,13 @@ class GSM:
             }
             body = json.dumps(body_dict)
             url = f'{self.srv_endpoint}/senddata/{self.srv_user}'
+            print('send_data: ' + str(body))
             self.http_post(url, body)
         finally:
             if disconnect:
                 self._disconnect_internet()
 
-    def http_get(self, url, timeout=7000, attempts=3):
+    def http_get(self, url, timeout=9000, attempts=3):
         while attempts > 0:
             try:
                 if self.debug:
@@ -133,9 +138,9 @@ class GSM:
             except:
                 print('http_get failed. Trying again...')
                 attempts -= 1
-                self.reboot()
+                # self.reboot()
 
-    def http_post(self, url, body, timeout=7000, attempts=3):
+    def http_post(self, url, body, timeout=9000, attempts=3):
          while attempts > 0:
             try:
                 if self.debug:
@@ -154,7 +159,7 @@ class GSM:
             except:
                 print('http_post failed. Trying again...')
                 attempts -= 1
-                self.reboot()
+                # self.reboot()
 
     def _connect_internet(self, attempts=1000):
         if self.debug:
