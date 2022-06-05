@@ -55,49 +55,72 @@ class Anklet:
         print('Anklet is running')
         while True:
             try:
-                toggle_led()
-                barometer_data = self.barometer.getAltitude()
-                bluetooth_received = self.bluetooth.receive()
-                if bluetooth_received:
-                    regx = re.search("(\d+(.\d+)?)", bluetooth_received)
-                    if "ALERT" in bluetooth_received:
-                        self.lora.send({'type': 'BUT'})
-                    if regx:
-                        regx = regx.groups()
-                        if regx:
-                            bluetooth_received = float(regx[0]) - self.offset
-                            barometer_data = float(barometer_data)
-                            if self.first_time:
-                                self.offset =  bluetooth_received - barometer_data
-                                self.first_time = False
-                            bar_data = {
-                                'type': 'BAR',
-                                'necklace': bluetooth_received,
-                                'anklet': barometer_data,
-                                'fall': False
-                            }
-                            if bluetooth_received - barometer_data < 0.4:
-                                bar_data['fall'] = True
-                                self.log.info("FALL DETECTED: Send to LoRa")
-                                self.lora.send(bar_data)
-                            else:
-                                if utime.ticks_ms() - self.bar_mills > self.bar_pooling * 1000:
-                                    self.lora.send(bar_data)
-                                    self.bar_mills = utime.ticks_ms()
-            
-                if utime.ticks_ms() - self.gps_mills > self.gps_pooling * 1000:
-                    print('GETTING GPS INFO')
-                    lat, lon = self.gps.get_lat_lon()
-                    gps_data = {
-                        "type": "GPS",
-                        "lat": lat,
-                        "lon": lon
-                    }
-                    # print(gps_data)
-                    self.lora.send(gps_data)
-                    self.gps_mills = utime.ticks_ms()
-                    
+                self.loop()
             except Exception as e:
                 print('Error: ', str(e))
-
             utime.sleep(0.3)
+
+    def loop(self):
+        toggle_led()
+        self.receive_bluetooth()
+        self.get_gps()
+
+    def receive_bluetooth(self):
+        bluetooth_received = self.bluetooth.receive()
+        if not bluetooth_received:
+            return
+
+        if "ALERT" in bluetooth_received:
+            self.lora.send({'type': 'BUT'})
+
+        parsed_bluetooth = self.parse_bluetooth(bluetooth_received)
+        if not parsed_bluetooth:
+            return
+
+        barometer_data = float(self.barometer.getAltitude())
+        if self.first_time:
+            self.offset = parsed_bluetooth - barometer_data
+            self.first_time = False
+
+        bar_data = self.build_barometer_data(parsed_bluetooth, barometer_data)
+        if parsed_bluetooth - barometer_data < 0.4:
+            bar_data['fall'] = True
+            self.log.info("FALL DETECTED: Send to LoRa")
+            self.lora.send(bar_data)
+        elif utime.ticks_ms() - self.bar_mills > self.bar_pooling * 1000:
+            self.lora.send(bar_data)
+            self.bar_mills = utime.ticks_ms()
+
+    def build_barometer_data(self, parsed_bt, barometer_data):
+        return {
+            'type': 'BAR',
+            'necklace': parsed_bt,
+            'anklet': barometer_data,
+            'fall': False
+        }
+
+    def parse_bluetooth(self, bt_msg):
+        regx = re.search("(\d+(.\d+)?)", bt_msg)
+        if not regx:
+            return False
+
+        regx = regx.groups()
+        if not regx:
+            return False
+
+        return float(regx[0]) - self.offset
+
+    def get_gps(self):
+        if not utime.ticks_ms() - self.gps_mills > self.gps_pooling * 1000:
+            return
+
+        print('GETTING GPS INFO')
+        lat, lon = self.gps.get_lat_lon()
+        gps_data = {
+            "type": "GPS",
+            "lat": lat,
+            "lon": lon
+        }
+        # print(gps_data)
+        self.lora.send(gps_data)
+        self.gps_mills = utime.ticks_ms()
