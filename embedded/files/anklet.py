@@ -43,12 +43,11 @@ class Anklet:
         self.bar_pooling = 30
         self.bar_mills = utime.ticks_ms()
         
-        self.gps_pooling = 300
+        self.gps_pooling = 60
         self.gps_mills = utime.ticks_ms()
 
         self.first_time = True
         self.offset = 0
-
 
     def run(self):
         self.lora.send('Anklet is running')
@@ -121,6 +120,6 @@ class Anklet:
             "lat": lat,
             "lon": lon
         }
-        # print(gps_data)
+        print(gps_data)
         self.lora.send(gps_data)
         self.gps_mills = utime.ticks_ms()
