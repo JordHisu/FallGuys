@@ -1,2 +1,2 @@
 rshell rm -rf /pyboard/
-echo Pico cleaned
+echo "Pico cleaned"

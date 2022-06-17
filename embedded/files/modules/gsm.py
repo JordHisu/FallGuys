@@ -39,12 +39,15 @@ class GSM:
         return response
 
     def send_sms(self, number, message, timeout_ms=5000):
-        if self.debug:
-            print("[Debug GSM] - send_sms")
-        response = self.query('AT+CMGS="%s"' % number, eol="\n")
-        if ">" not in response:
-            raise Exception("Unknown response: %s" % response)
-        self.exec(message, timeout_ms, eol="\x1A")
+        try:
+            if self.debug:
+                print("[Debug GSM] - send_sms")
+            response = self.query('AT+CMGS="%s"' % number, eol="\n")
+            if ">" not in response:
+                raise Exception("Unknown response: %s" % response)
+            self.exec(message, timeout_ms, eol="\x1A")
+        except Exception as e:
+            print('Error sending SMS')
 
     def reboot(self):
         self._power_cycle()
@@ -61,72 +64,102 @@ class GSM:
     def sleep(self):
         self.power.value(0)
 
-    def send_notification(self, not_type):  # fall, stand, lying, panic
-        if self.debug:
-            print("[Debug GSM] - send_notification")
-        url = f'{self.srv_endpoint}/sendnotif/{self.srv_user}'
-        body = '{"type": "' + not_type + '"}'
-        self.http_post(url, body)
-        self._disconnect_internet()
+    def send_notification(self, not_type, disconnect=True):  # fall, stand, lying, panic
+        try:
+            if self.debug:
+                print("[Debug GSM] - send_notification")
+            url = f'{self.srv_endpoint}/sendnotif/{self.srv_user}'
+            body = '{"type": "' + not_type + '"}'
+            print('send_notification: ' + str(body))
+            self.http_post(url, body)
+        finally:
+            if disconnect:
+                self._disconnect_internet()
+        
 
-    def get_configuration(self):
-        if self.debug:
-            print("[Debug GSM] - get_configuration")
-        url = f'{self.srv_endpoint}/getconfig/{self.srv_user}'
-        res = self.http_get(url)
-        search_res = re.search("{.*}", res)
-        list_res = json.loads(search_res.group(0))
-        config = {item[0]: item[1] for item in list_res["content"]}
-        self._disconnect_internet()
+    def get_configuration(self, disconnect=True):
+        config = None
+        try:    
+            if self.debug:
+                print("[Debug GSM] - get_configuration")
+            url = f'{self.srv_endpoint}/getconfig/{self.srv_user}'
+            res = self.http_get(url)
+            search_res = re.search("{.*}", res)
+            list_res = json.loads(search_res.group(0))
+            config = {item[0]: item[1] for item in list_res["content"]}
+        finally:
+            if disconnect:
+                self._disconnect_internet()
         return config
 
-    def get_info(self):
-        if self.debug:
-            print("[Debug GSM] - get_info")
-        url = f'{self.srv_endpoint}/info/{self.srv_user}'
-        res = self.http_get(url)
-        search_res = re.search("{.*}", res)
-        list_res = json.loads(search_res.group(0))
-        self._disconnect_internet()
+    def get_info(self, disconnect=True):
+        list_res = None
+        try:
+            if self.debug:
+                print("[Debug GSM] - get_info")
+            url = f'{self.srv_endpoint}/info/{self.srv_user}'
+            res = self.http_get(url)
+            search_res = re.search("{.*}", res)
+            list_res = json.loads(search_res.group(0))
+        finally:
+            if disconnect:
+                self._disconnect_internet()
         return list_res
 
-    def send_data(self, steps, live_location, pressure):
-        if self.debug:
-            print("[Debug GSM] - send_data")
-        body_dict = {
-            "steps": steps,
-            "livelocation": live_location,
-            "pressure": pressure
-        }
-        body = json.dumps(body_dict)
-        url = f'{self.srv_endpoint}/senddata/{self.srv_user}'
-        self.http_post(url, body)
-        self._disconnect_internet()
+    def send_data(self, steps, live_location, pressure, disconnect=True):
+        try:
+            if self.debug:
+                print("[Debug GSM] - send_data")
+            body_dict = {
+                "steps": steps,
+                "livelocation": live_location,
+                "pressure": pressure
+            }
+            body = json.dumps(body_dict)
+            url = f'{self.srv_endpoint}/senddata/{self.srv_user}'
+            print('send_data: ' + str(body))
+            self.http_post(url, body)
+        finally:
+            if disconnect:
+                self._disconnect_internet()
 
-    def http_get(self, url, timeout=10000):
-        if self.debug:
-            print("[Debug GSM] - http_get")
-        self._ensure_connected_to_internet()
-        self.exec(f'AT+HTTPPARA="URL","{url}"')
-        res = self.exec('AT+HTTPACTION=0', timeout_ms=timeout)
-        if '200' not in res:
-            raise Exception(f"GSM - Unknown http get response code: {res}")
-        result = self.exec('AT+HTTPREAD', timeout_ms=5000)
-        return result
+    def http_get(self, url, timeout=9000, attempts=3):
+        while attempts > 0:
+            try:
+                if self.debug:
+                    print("[Debug GSM] - http_get")
+                self._ensure_connected_to_internet()
+                self.exec(f'AT+HTTPPARA="URL","{url}"')
+                res = self.exec('AT+HTTPACTION=0', timeout_ms=timeout)
+                if '200' not in res:
+                    raise Exception(f"GSM - Unknown http get response code: {res}")
+                result = self.exec('AT+HTTPREAD', timeout_ms=5000)
+                return result
+            except:
+                print('http_get failed. Trying again...')
+                attempts -= 1
+                # self.reboot()
 
-    def http_post(self, url, body, timeout=10000):
-        if self.debug:
-            print("[Debug GSM] - http_post")
-        self._ensure_connected_to_internet()
-        self.exec('AT+HTTPPARA="CONTENT",application/json')
-        self.exec(f'AT+HTTPPARA="URL","{url}"')
-        str_bytes = (body + "\n").encode()
-        self.exec(f'AT+HTTPDATA={str(len(str_bytes))},10000', timeout_ms=3000, ok_check=False)
-        self.modem.write(str_bytes)
-        sleep(0.1)
-        res = self.exec('AT+HTTPACTION=1', timeout_ms=timeout)
-        if '200' not in res:
-            raise Exception(f"GSM - Unknown http post response code: {res}")
+    def http_post(self, url, body, timeout=9000, attempts=3):
+         while attempts > 0:
+            try:
+                if self.debug:
+                    print("[Debug GSM] - http_post")
+                self._ensure_connected_to_internet()
+                self.exec('AT+HTTPPARA="CONTENT",application/json')
+                self.exec(f'AT+HTTPPARA="URL","{url}"')
+                str_bytes = (body + "\n").encode()
+                self.exec(f'AT+HTTPDATA={str(len(str_bytes))},10000', timeout_ms=3000, ok_check=False)
+                self.modem.write(str_bytes)
+                sleep(0.1)
+                res = self.exec('AT+HTTPACTION=1', timeout_ms=timeout)
+                if '200' not in res:
+                    raise Exception(f"GSM - Unknown http post response code: {res}")
+                return
+            except:
+                print('http_post failed. Trying again...')
+                attempts -= 1
+                # self.reboot()
 
     def _connect_internet(self, attempts=1000):
         if self.debug:
