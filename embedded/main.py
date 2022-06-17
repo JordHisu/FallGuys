@@ -1,15 +1,13 @@
-from files.modules.measurements import Measurements
+from files.anklet import Anklet
+from files.modules.bluetooth_i2c import Bluetooth
+import machine
+from files.utils.logger import Logger
 
 
 def run():
-    measurements = Measurements(stepcallback)
-    measurements.start()
+    anklet = Anklet()
+    anklet.run()
 
-steps = 0
-def stepcallback():
-    global steps
-    steps += 1
-    print(steps)
 
 if __name__ == "__main__":
     run()

@@ -1,11 +1,9 @@
 import machine
 import time
 
+
 class Bluetooth:
-    def __init__(self, i2c_num, scl_pin, sda_pin, log, address=0x50):
-        i2c = machine.I2C(i2c_num,
-                          scl=machine.Pin(scl_pin),
-                          sda=machine.Pin(sda_pin))
+    def __init__(self, i2c, log, address=0x50):
         self.i2c = i2c
         self.address = address
         self.log = log
@@ -13,7 +11,6 @@ class Bluetooth:
         # mac = self.i2c.readfrom_mem(self.address, 0x11, 6)
         # time.sleep(0.05)
         # print('MODEL -> ' + str(mac))
-
 
     # def send(self, msg):
     #     print("Sending: " + str(msg))s
