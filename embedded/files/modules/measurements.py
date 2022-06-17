@@ -3,15 +3,14 @@ from files.modules.accelerometer import Accelerometer
 from _thread import start_new_thread
 import utime
 
+
 class Measurements:
-    def __init__(self, stepcallback) -> None:
+    def __init__(self, stepcallback, i2c) -> None:
         self.accelerometer = Accelerometer(
-            i2c_num=0,
-            scl_pin=21,
-            sda_pin=20,
+            i2c=i2c,
             log=None,
             address=0x53,
-            irq_callback = stepcallback
+            irq_callback=stepcallback
         )
     
     def _loop(self):

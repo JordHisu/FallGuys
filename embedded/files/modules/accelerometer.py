@@ -1,5 +1,4 @@
 from files.utils.smbus import SMBus
-import machine
 
 # ADXL345 constants
 EARTH_GRAVITY_MS2 = 9.80665
@@ -38,21 +37,21 @@ class Accelerometer:
     threshold = 3
     minacc = 1.5
 
-    def __init__(self, i2c_num, scl_pin, sda_pin, log, address=0x53, irq_callback=None):
-        self.i2c = machine.I2C(i2c_num,
-                               scl=machine.Pin(scl_pin),
-                               sda=machine.Pin(sda_pin),
-                               freq=400000)
-
+    def __init__(self, i2c, log, address=0x53, irq_callback=None):
+        self.i2c = i2c
         self.bus = SMBus(self.i2c)
 
         self.log = log
         self.callback = irq_callback
         self.address = address
-        self.setBandwidthRate(BW_RATE_25HZ)
-        self.setRange(RANGE_2G)
-        self.enableMeasurement()
-        self.enableStreamMode()
+
+        try:  # Remove this after soldering the accelerometer with the bluetooth
+            self.setBandwidthRate(BW_RATE_25HZ)
+            self.setRange(RANGE_2G)
+            self.enableMeasurement()
+            self.enableStreamMode()
+        except:
+            pass
 
         self.xvalues = []
         self.yvalues = []
@@ -174,8 +173,8 @@ class Accelerometer:
         else:
             return
 
-        if self.validationstep is 0 and a > self.threshold:
+        if self.validationstep == 0 and a > self.threshold:
             self.callback()
             self.validationstep = 1
-        elif self.validationstep is 1 and a < self.threshold:
+        elif self.validationstep == 1 and a < self.threshold:
             self.validationstep = 0
