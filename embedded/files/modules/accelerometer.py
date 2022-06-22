@@ -1,4 +1,5 @@
 from files.utils.smbus import SMBus
+from utime import ticks_ms
 
 # ADXL345 constants
 EARTH_GRAVITY_MS2 = 9.80665
@@ -34,24 +35,22 @@ FIFO_MODE = 0x38
 class Accelerometer:
     address = None
     nvalues = 20
-    threshold = 3
+    threshold = 4
     minacc = 1.5
+    step_delay_ms = 1000
 
-    def __init__(self, i2c, log, address=0x53, irq_callback=None):
+    def __init__(self, i2c, log, address=0x53, irq_callback=None, i2c_lock=None):
         self.i2c = i2c
-        self.bus = SMBus(self.i2c)
+        self.bus = SMBus(self.i2c, i2c_lock)
 
         self.log = log
         self.callback = irq_callback
         self.address = address
 
-        try:  # Remove this after soldering the accelerometer with the bluetooth
-            self.setBandwidthRate(BW_RATE_25HZ)
-            self.setRange(RANGE_2G)
-            self.enableMeasurement()
-            self.enableStreamMode()
-        except:
-            pass
+        self.setBandwidthRate(BW_RATE_25HZ)
+        self.setRange(RANGE_2G)
+        self.enableMeasurement()
+        self.enableStreamMode()
 
         self.xvalues = []
         self.yvalues = []
@@ -63,6 +62,8 @@ class Accelerometer:
         self.intavalues = 0
         self.validationstep = 0
         self.fcount = 0
+
+        self.last_step_time = ticks_ms()
 
     def enableStreamMode(self):
         self.bus.write_byte_data(self.address, FIFO_MODE, MODE_STREAM)
@@ -89,17 +90,19 @@ class Accelerometer:
     #    False (default): result is returned in m/s^2
     #    True           : result is returned in gs
     def getAxes(self, gforce=False):
-        bytes = self.bus.read_i2c_block_data(self.address, AXES_DATA, 6)
+        bytes_ = self.bus.read_i2c_block_data(self.address, AXES_DATA, 6)
+        if bytes_ is None:
+            return
 
-        x = bytes[0] | (bytes[1] << 8)
+        x = bytes_[0] | (bytes_[1] << 8)
         if x & (1 << 16 - 1):
             x = x - (1 << 16)
 
-        y = bytes[2] | (bytes[3] << 8)
+        y = bytes_[2] | (bytes_[3] << 8)
         if y & (1 << 16 - 1):
             y = y - (1 << 16)
 
-        z = bytes[4] | (bytes[5] << 8)
+        z = bytes_[4] | (bytes_[5] << 8)
         if z & (1 << 16 - 1):
             z = z - (1 << 16)
 
@@ -121,15 +124,18 @@ class Accelerometer:
     def stepIteration(self):
         self.fcount += 1
         axes = self.getAxes()
+        if axes is None:
+            return
+
         x = axes['x']
         y = axes['y']
         z = axes['z']
 
-        if x < self.minacc and x > -self.minacc:
+        if self.minacc > x > -self.minacc:
             x = 0
-        if y < self.minacc and y > -self.minacc:
+        if self.minacc > y > -self.minacc:
             y = 0
-        if z < self.minacc and z > -self.minacc:
+        if self.minacc > z > -self.minacc:
             z = 0
 
         self.xvalues.append(x)
@@ -159,7 +165,7 @@ class Accelerometer:
         y -= gy
         z -= gz
 
-        a = x * gx + y * gy + z * gz
+        a = x * (gy - gz) - y * (gx + gz) + z * (gx + gy)
         
         self.avalues.append(a)
         self.intavalues += a
@@ -168,13 +174,12 @@ class Accelerometer:
         if count > self.nvalues:
             self.intavalues -= self.avalues.pop(0)
         
-        if count > 1:
-            a = self.intavalues / (count - 1)
-        else:
+        if count <= 1:
             return
 
-        if self.validationstep == 0 and a > self.threshold:
+        a = self.intavalues / (count - 1)
+
+        if self.last_step_time + self.step_delay_ms < ticks_ms() and abs(a) > self.threshold:
+            self.last_step_time = ticks_ms()
             self.callback()
-            self.validationstep = 1
-        elif self.validationstep == 1 and a < self.threshold:
-            self.validationstep = 0
+

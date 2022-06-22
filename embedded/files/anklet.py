@@ -9,6 +9,7 @@ from files.modules.measurements import Measurements
 import machine
 import utime
 import re
+from _thread import allocate_lock
 
 
 class Anklet:
@@ -20,8 +21,11 @@ class Anklet:
             sda=machine.Pin(12),
             freq=400000
         )
+        i2c_lock = allocate_lock()
+
         self.bluetooth = Bluetooth(
             i2c=self.i2c,
+            i2c_lock=i2c_lock,
             log=self.log
         )
         self.barometer = Barometer(
@@ -47,7 +51,8 @@ class Anklet:
         )
         self.measurements = Measurements(
             stepcallback=self.step_callback,
-            i2c=self.i2c
+            i2c=self.i2c,
+            i2c_lock=i2c_lock
         )
 
         self.bar_polling = 30
@@ -63,7 +68,7 @@ class Anklet:
         self.steps_mills = utime.ticks_ms()
         self.steps = 0
 
-        # self.measurements.start()  <-- uncomment this to run the accelerometer thread
+        self.measurements.start()  # <-- uncomment this to run the accelerometer thread
 
     def run(self):
         self.lora.send('Anklet is running')
@@ -77,6 +82,7 @@ class Anklet:
 
     def step_callback(self):
         self.steps += 1
+        print("STEPS:", self.steps)
 
     def loop(self):
         toggle_led()
