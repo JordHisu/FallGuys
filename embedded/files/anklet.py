@@ -5,9 +5,10 @@ from files.modules.lora import LoRa
 from files.modules.gps import GPS
 from files.utils.logger import Logger
 from files.utils.blink_led import toggle_led
-from files.modules.measurements import Measurements
+# from files.modules.measurements import Measurements
+from files.modules.accelerometer import Accelerometer
 import machine
-import utime
+from utime import sleep_ms, ticks_ms
 import re
 from _thread import allocate_lock
 
@@ -49,26 +50,32 @@ class Anklet:
             rx_pin=9,
             enable_pin=26
         )
-        self.measurements = Measurements(
-            stepcallback=self.step_callback,
+        self.accelerometer = Accelerometer(
             i2c=self.i2c,
-            i2c_lock=i2c_lock
+            address=0x53,
+            irq_callback=self.step_callback,
+            i2c_lock=i2c_lock,
+            log=None
         )
 
+        self.led_delay = .3
+        self.led_mills = ticks_ms()
+
+        self.bt_delay = .5
+        self.bt_mills = ticks_ms()
+
         self.bar_polling = 30
-        self.bar_mills = utime.ticks_ms()
+        self.bar_mills = ticks_ms()
         
-        self.gps_polling = 60
-        self.gps_mills = utime.ticks_ms()
+        self.gps_polling = 180
+        self.gps_mills = ticks_ms()
 
         self.first_time = True
         self.offset = 0
 
         self.steps_polling = 60
-        self.steps_mills = utime.ticks_ms()
+        self.steps_mills = ticks_ms()
         self.steps = 0
-
-        self.measurements.start()  # <-- uncomment this to run the accelerometer thread
 
     def run(self):
         self.lora.send('Anklet is running')
@@ -78,19 +85,31 @@ class Anklet:
                 self.loop()
             except Exception as e:
                 print('Error: ', str(e))
-            utime.sleep(0.3)
 
     def step_callback(self):
         self.steps += 1
         print("STEPS:", self.steps)
 
     def loop(self):
-        toggle_led()
+        self.toggle_led()
         self.receive_bluetooth()
         self.get_gps()
-        self.send_steps()
+        self.accelerometer.stepIteration()
+        self.send_steps_if_needed()
+
+    def toggle_led(self):
+        if not ticks_ms() - self.led_mills > self.led_delay * 1000:
+            return
+
+        self.led_mills = ticks_ms()
+        toggle_led()
 
     def receive_bluetooth(self):
+        if not ticks_ms() - self.bt_mills > self.bt_delay * 1000:
+            return
+
+        self.bt_mills = ticks_ms()
+
         bluetooth_received = self.bluetooth.receive()
         if not bluetooth_received:
             return
@@ -112,9 +131,9 @@ class Anklet:
             bar_data['fall'] = True
             self.log.info("FALL DETECTED: Send to LoRa")
             self.lora.send(bar_data)
-        elif utime.ticks_ms() - self.bar_mills > self.bar_polling * 1000:
+        elif ticks_ms() - self.bar_mills > self.bar_polling * 1000:
             self.lora.send(bar_data)
-            self.bar_mills = utime.ticks_ms()
+            self.bar_mills = ticks_ms()
 
     def _build_barometer_data(self, parsed_bt, barometer_data):
         return {
@@ -136,7 +155,7 @@ class Anklet:
         return float(regx[0]) - self.offset
 
     def get_gps(self):
-        if not utime.ticks_ms() - self.gps_mills > self.gps_polling * 1000:
+        if not ticks_ms() - self.gps_mills > self.gps_polling * 1000:
             return
 
         print('GETTING GPS INFO')
@@ -148,10 +167,10 @@ class Anklet:
         }
         print(gps_data)
         self.lora.send(gps_data)
-        self.gps_mills = utime.ticks_ms()
+        self.gps_mills = ticks_ms()
 
-    def send_steps(self):
-        if not utime.ticks_ms() - self.steps_mills > self.steps_polling * 1000:
+    def send_steps_if_needed(self):
+        if not ticks_ms() - self.steps_mills > self.steps_polling * 1000:
             return
 
         steps_data = {
@@ -161,5 +180,5 @@ class Anklet:
 
         self.steps = 0
         self.lora.send(steps_data)
-        self.steps_mills = utime.ticks_ms()
+        self.steps_mills = ticks_ms()
 

@@ -61,7 +61,6 @@ class Accelerometer:
         self.intzvalues = 0
         self.intavalues = 0
         self.validationstep = 0
-        self.fcount = 0
 
         self.last_step_time = ticks_ms()
 
@@ -122,7 +121,6 @@ class Accelerometer:
         return {"x": x, "y": y, "z": z}
 
     def stepIteration(self):
-        self.fcount += 1
         axes = self.getAxes()
         if axes is None:
             return
@@ -147,15 +145,12 @@ class Accelerometer:
 
         count = len(self.xvalues)
 
-        if count > self.nvalues:
-            self.intxvalues -= self.xvalues.pop(0)
-            self.intyvalues -= self.yvalues.pop(0)
-            self.intzvalues -= self.zvalues.pop(0)
-        else:
+        if count <= self.nvalues:
             return
-        
-        if self.fcount % 10 != 0:
-            return
+
+        self.intxvalues -= self.xvalues.pop(0)
+        self.intyvalues -= self.yvalues.pop(0)
+        self.intzvalues -= self.zvalues.pop(0)
         
         gx = self.intxvalues / (count - 1)
         gy = self.intyvalues / (count - 1)
