@@ -21,6 +21,7 @@ class Bluetooth:
         if not rcv:
             return None
 
+        print(rcv.decode())
         return rcv.decode()
 
 
